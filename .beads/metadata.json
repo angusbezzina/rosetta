@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "rosetta",
+  "project_id": "98725f99-39e5-4418-a539-a14b2bf41784"
+}
