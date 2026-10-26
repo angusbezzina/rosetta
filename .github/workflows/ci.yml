@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.0 --profile minimal --component rustfmt --component clippy
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-1.97.0-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-1.97.0-
+      - run: cargo fmt --all --check
+      - run: cargo check --workspace
+      - run: cargo test --workspace
+      - name: Composite action scan behavior
+        if: runner.os == 'Linux'
+        run: |
+          cargo build -p rosetta-repo-cli
+          node --test scripts/action-scan.test.mjs
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  generated:
+    name: Generated files and viewer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.0 --profile minimal
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - name: Install viewer dependencies
+        working-directory: packages/atlas-viewer
+        run: bun install --frozen-lockfile
+      - name: Check vendored viewer and types
+        working-directory: packages/atlas-viewer
+        run: |
+          bun build.ts --check --vendor
+          bun test tests/viewer.test.ts tests/standalone.test.ts tests/pele.test.ts
+          node_modules/.bin/tsc --noEmit
+      - name: Check committed Atlas schema
+        run: |
+          cargo run --quiet -p rosetta-repo-cli -- atlas schema > "$RUNNER_TEMP/atlas.schema.json"
+          cmp "$RUNNER_TEMP/atlas.schema.json" crates/rosetta-atlas/schema/atlas.schema.json
+
+  offline:
+    name: Offline local flow (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.0 --profile minimal
+      - run: cargo build -p rosetta-repo-cli
+      - name: Deny Linux networking, allow loopback
+        if: runner.os == 'Linux'
+        run: |
+          docker build -f scripts/offline-test.Dockerfile -t rosetta-offline-test scripts
+          docker run --rm --network none --env ROSETTA_TEST_LOOPBACK=1 \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/repo,readonly" \
+            --workdir /repo rosetta-offline-test \
+            sh scripts/offline-smoke.sh /repo/target/debug/rosetta
+      - name: Deny macOS external networking, allow loopback
+        if: runner.os == 'macOS'
+        run: |
+          sandbox-exec -p '(version 1)(allow default)(deny network*)(allow network-bind (local ip))(allow network-inbound (local ip))(allow network-outbound (remote ip "localhost:*"))' \
+            /usr/bin/env ROSETTA_TEST_LOOPBACK=1 \
+            /bin/sh scripts/offline-smoke.sh "$PWD/target/debug/rosetta"

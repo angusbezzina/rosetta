@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  fmt:
+    cmds:
+      - cargo fmt --all --check
+  check:
+    cmds:
+      - cargo check --workspace
+  test:
+    cmds:
+      - cargo test --workspace
+  lint:
+    cmds:
+      - cargo clippy --workspace --all-targets -- -D warnings
+  viewer:build:
+    dir: packages/atlas-viewer
+    cmds:
+      - bun build.ts --vendor
+  viewer:check:
+    dir: packages/atlas-viewer
+    cmds:
+      - bun build.ts --check --vendor
+      - bun test tests/viewer.test.ts tests/standalone.test.ts tests/pele.test.ts
+      - node_modules/.bin/tsc --noEmit

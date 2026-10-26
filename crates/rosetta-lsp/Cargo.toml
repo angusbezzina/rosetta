@@ -1,0 +1,13 @@
+[package]
+name = "rosetta-repo-lsp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "rosetta_lsp"
+
+[lints]
+workspace = true

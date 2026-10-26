@@ -1,0 +1,10 @@
+flowchart LR
+  n1["principal"]
+  click n1 "atlas:records%3Aprincipal"
+  n2["Messages and channels"]
+  click n2 "atlas:records-area%3Aconversation"
+  n2 -->|"decision.decided_by"| n1
+  class n1,n2 fam-store
+  class n2 kind-area
+  class n1 kind-collection
+  class n1 scope-private

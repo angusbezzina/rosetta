@@ -1,0 +1,330 @@
+{
+  "schema": "virgil.atlas/v1",
+  "project": {
+    "name": "fixture",
+    "repo": "example/fixture"
+  },
+  "nodes": [
+    {
+      "id": "web",
+      "label": "Web app",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/web",
+      "summary": "The surface a person types into."
+    },
+    {
+      "id": "door",
+      "label": "Door",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/door",
+      "summary": "Answers a request; never streams.",
+      "refs": {
+        "term": "term.door",
+        "rules": [
+          "rule.door-no-stream"
+        ],
+        "principles": [
+          "principle.door-answers-edge-is-live"
+        ],
+        "docs": [
+          "docs/shipping.md"
+        ]
+      }
+    },
+    {
+      "id": "store",
+      "label": "Store",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/core",
+      "summary": "Where the records are kept.",
+      "refs": {
+        "term": "term.store"
+      }
+    },
+    {
+      "id": "edge",
+      "label": "Edge",
+      "family": "service",
+      "kind": "service",
+      "path": "apps/edge",
+      "summary": "The only live transport.",
+      "refs": {
+        "term": "term.edge"
+      }
+    },
+    {
+      "id": "cells",
+      "label": "Cells",
+      "family": "store",
+      "kind": "store",
+      "path": "infra/src/database.ts",
+      "summary": "The database the store writes to.",
+      "refs": {
+        "principles": [
+          "principle.safe-by-default"
+        ]
+      }
+    },
+    {
+      "id": "repo",
+      "label": "fixture",
+      "family": "service",
+      "kind": "directory",
+      "path": ".",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    },
+    {
+      "id": "apps",
+      "label": "apps",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "apps",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "apps-edge",
+      "label": "@fixture/edge",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/edge",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "apps-web",
+      "label": "@fixture/web",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/web",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "crates",
+      "label": "crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "crates",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    },
+    {
+      "id": "crates-core",
+      "label": "fixture-core",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/core",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    },
+    {
+      "id": "crates-door",
+      "label": "fixture-door",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/door",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    },
+    {
+      "id": "crates-outside",
+      "label": "fixture-outside",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/outside",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    },
+    {
+      "id": "infra",
+      "label": "infra",
+      "family": "store",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "infra",
+      "derived": {
+        "source": "infra/Pulumi.yaml"
+      }
+    },
+    {
+      "id": "packages",
+      "label": "packages",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "packages",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "packages-ui",
+      "label": "@fixture/ui",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/ui",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "packages-virgil-schema",
+      "label": "@fixture/schema",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-schema",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "id": "infra-src-compute-door-cloudrunv2-service",
+      "label": "cloudrunv2.Service · door",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/door.ts",
+      "derived": {
+        "source": "infra/src/compute/door.ts"
+      }
+    },
+    {
+      "id": "infra-src-compute-door-serviceaccount-account",
+      "label": "serviceaccount.Account · door",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/door.ts",
+      "derived": {
+        "source": "infra/src/compute/door.ts"
+      }
+    },
+    {
+      "id": "infra-src-database-sql-database",
+      "label": "sql.Database · database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database.ts",
+      "derived": {
+        "source": "infra/src/database.ts"
+      }
+    },
+    {
+      "id": "infra-src-database-sql-database-instance",
+      "label": "sql.DatabaseInstance · database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database.ts",
+      "derived": {
+        "source": "infra/src/database.ts"
+      }
+    },
+    {
+      "id": "a-file",
+      "label": "a-file",
+      "family": "service",
+      "kind": "file",
+      "path": "crates/door/src/main.rs"
+    }
+  ],
+  "edges": [
+    {
+      "from": "web",
+      "to": "door",
+      "kind": "calls",
+      "label": "request/answer"
+    },
+    {
+      "from": "door",
+      "to": "store",
+      "kind": "writes"
+    },
+    {
+      "from": "store",
+      "to": "cells",
+      "kind": "writes"
+    },
+    {
+      "from": "store",
+      "to": "edge",
+      "kind": "publishes",
+      "label": "outbox"
+    },
+    {
+      "from": "edge",
+      "to": "web",
+      "kind": "delivers",
+      "label": "live"
+    },
+    {
+      "from": "apps-web",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": {
+        "source": "package.json"
+      }
+    },
+    {
+      "from": "crates-door",
+      "to": "crates-core",
+      "kind": "calls",
+      "derived": {
+        "source": "Cargo.toml"
+      }
+    }
+  ],
+  "views": [
+    {
+      "id": "send",
+      "kind": "flow",
+      "title": "A message from send to screen",
+      "description": "One message, typed to seen.",
+      "steps": [
+        {
+          "node": "web",
+          "label": "the person sends"
+        },
+        {
+          "node": "door",
+          "label": "answers \"accepted\""
+        },
+        {
+          "node": "store",
+          "label": "commits the row"
+        },
+        {
+          "node": "edge",
+          "label": "carries it live"
+        },
+        {
+          "node": "web",
+          "label": "the other screen shows it"
+        }
+      ]
+    }
+  ]
+}

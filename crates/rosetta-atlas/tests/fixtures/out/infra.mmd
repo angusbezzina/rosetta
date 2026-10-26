@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph g1["Cloud"]
+    n1["Door"]
+    click n1 "atlas:door"
+  end
+  subgraph g2["compute/door"]
+    n2["cloudrunv2.Service · door"]
+    click n2 "atlas:infra-src-compute-door-cloudrunv2-service"
+  end
+  subgraph g3["database"]
+    n3[("sql.Database · database")]
+    click n3 "atlas:infra-src-database-sql-database"
+    n4[("sql.DatabaseInstance · database")]
+    click n4 "atlas:infra-src-database-sql-database-instance"
+  end
+  n2 -->|"deploys · runs"| n1
+  class n1,n2 fam-service
+  class n3,n4 fam-store
+  class n2,n3,n4 kind-resource
+  class n1 kind-service

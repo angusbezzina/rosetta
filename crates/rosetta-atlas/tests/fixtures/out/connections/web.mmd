@@ -1,0 +1,14 @@
+flowchart LR
+  n1["Web app"]
+  click n1 "atlas:web"
+  n2["Edge"]
+  click n2 "atlas:edge"
+  n3["Door"]
+  click n3 "atlas:door"
+  n2 -->|"delivers · live"| n1
+  n1 -->|"calls · request/answer"| n3
+  class n2,n3 fam-service
+  class n1 fam-surface
+  class n1 is-focus
+  class n2,n3 kind-service
+  class n1 kind-surface

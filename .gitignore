@@ -1,6 +1,8 @@
 target/
 node_modules/
 dist/
+!packages/atlas-viewer/dist/
+!packages/atlas-viewer/dist/**
 .DS_Store
 
 # Beads / Dolt files (added by bd init)

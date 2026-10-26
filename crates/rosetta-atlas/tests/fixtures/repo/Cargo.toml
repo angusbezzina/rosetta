@@ -1,0 +1,4 @@
+[workspace]
+members = ["crates/core", "crates/door"]
+exclude = ["crates/outside"]
+resolver = "2"

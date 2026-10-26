@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas viewer demo</title>
+<link rel="stylesheet" href="../src/tokens.css">
+<!-- The built sheet: the panel's Tailwind with src/styles.css after it, so
+     run `bun run build` after a style change. -->
+<link rel="stylesheet" href="../dist/atlas-viewer.css">
+<style>
+  html, body { height: 100%; margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: var(--font-sans); }
+  body { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+  .demo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid hsl(var(--border)); font-size: 13px; }
+  .demo-bar strong { margin-right: auto; }
+  .demo-bar label { display: inline-flex; align-items: center; gap: 6px; color: hsl(var(--muted-foreground)); }
+  .demo-bar select, .demo-bar button { font: inherit; color: inherit; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 2px 8px; }
+  #atlas { min-height: 0; }
+</style>
+</head>
+<body>
+<div class="demo-bar">
+  <strong>Atlas viewer demo</strong>
+  <label>Brand <select id="brand"><option value="neutral">Neutral</option><option value="forest">Forest (custom)</option></select></label>
+  <button type="button" id="theme">Dark</button>
+</div>
+<main id="atlas"></main>
+<script type="module" src="./demo.ts"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+flowchart LR
+  n1["fixture-door"]
+  click n1 "atlas:crates-door"
+  n2["fixture-core"]
+  click n2 "atlas:crates-core"
+  n1 -->|"depends on"| n2
+  class n1,n2 fam-service
+  class n1 is-focus
+  class n1,n2 kind-crate

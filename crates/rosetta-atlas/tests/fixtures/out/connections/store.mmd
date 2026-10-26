@@ -1,0 +1,17 @@
+flowchart LR
+  n1["Store"]
+  click n1 "atlas:store"
+  n2["Door"]
+  click n2 "atlas:door"
+  n3["Edge"]
+  click n3 "atlas:edge"
+  n4["Cells"]
+  click n4 "atlas:cells"
+  n2 -->|"writes"| n1
+  n1 -->|"publishes · outbox"| n3
+  n1 -->|"writes"| n4
+  class n2,n3 fam-service
+  class n1,n4 fam-store
+  class n1 is-focus
+  class n2,n3 kind-service
+  class n1,n4 kind-store

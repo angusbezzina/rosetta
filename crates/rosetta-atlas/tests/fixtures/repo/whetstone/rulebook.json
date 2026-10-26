@@ -1,0 +1,29 @@
+{
+  "schema": "whetstone.rulebook.v1",
+  "principles": [
+    {
+      "id": "principle.door-answers-edge-is-live",
+      "statement": "The door answers; the edge is live."
+    },
+    {
+      "id": "principle.safe-by-default",
+      "statement": "Safe by default."
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule.door-no-stream",
+      "statement": "The door never streams."
+    },
+    {
+      "id": "rule.glossary-terms",
+      "statement": "Copy uses the glossary's names.",
+      "enforcer": {
+        "kind": "ast",
+        "query": "([(jsx_text) (string_fragment)] @match (#match? @match \"(?i)\\\\b(workspaces?|teams?)\\\\b\") (#not-match? @match \"(?i)(slack|google) workspace\") (#not-match? @match \"^\\\\S*/\\\\S*$\"))",
+        "language": "typescript"
+      },
+      "paths": ["apps/**/*.tsx"]
+    }
+  ]
+}

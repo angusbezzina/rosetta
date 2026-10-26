@@ -1,0 +1,8 @@
+flowchart LR
+  n1["Messages and channels"]
+  click n1 "atlas:records-area%3Aconversation"
+  n2["People"]
+  click n2 "atlas:records-area%3Apeople"
+  n1 -->|"1 ref"| n2
+  class n1,n2 fam-store
+  class n1,n2 kind-area

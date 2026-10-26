@@ -1,0 +1,52 @@
+{
+  "x-virgil-collections": {
+    "channel": {
+      "title": "channel",
+      "description": "A place members talk. Messages live in one.",
+      "x-virgil-scope": "container",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-virgil-field": "text"
+        }
+      }
+    },
+    "message": {
+      "title": "message",
+      "description": "One utterance in a channel.",
+      "x-virgil-scope": "container",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "x-virgil-field": "ref",
+          "x-virgil-ref-to": [
+            "channel"
+          ]
+        },
+        "parent": {
+          "type": "string",
+          "x-virgil-field": "ref",
+          "x-virgil-ref-to": "any"
+        },
+        "decision": {
+          "type": "object",
+          "properties": {
+            "decided_by": {
+              "type": "string",
+              "x-virgil-field": "ref",
+              "x-virgil-ref-to": [
+                "principal"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "principal": {
+      "title": "principal",
+      "description": "Someone who acts: a person or an agent.",
+      "x-virgil-scope": "private",
+      "properties": {}
+    }
+  }
+}

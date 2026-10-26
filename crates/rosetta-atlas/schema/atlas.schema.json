@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atlas",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "description": "`rosetta.atlas/v1`; the Virgil schema id remains an accepted alias.",
+      "type": "string"
+    },
+    "project": { "$ref": "#/$defs/Project" },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/Node" } },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Edge" },
+      "default": []
+    },
+    "views": {
+      "description": "Custom views only: `flow` and `custom`. Overview, Infra, Records, Data\nand Connections are built from the nodes and edges.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/View" }
+    },
+    "capabilities": {
+      "description": "Human-curated purpose-to-code links. They survive re-sync unchanged.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/Capability" }
+    },
+    "records": {
+      "description": "Where the record collections are declared and the areas that group\nthem; an atlas without it has no records view.",
+      "anyOf": [{ "$ref": "#/$defs/Records" }, { "type": "null" }]
+    }
+  },
+  "additionalProperties": false,
+  "required": ["schema", "project", "nodes", "views"],
+  "$defs": {
+    "Project": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "repo": {
+          "description": "`owner/name` of the repository.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "repo"]
+    },
+    "Node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Kebab-case and unique; a derived node's id is the kebab of its path.",
+          "type": "string"
+        },
+        "label": { "type": "string" },
+        "family": { "$ref": "#/$defs/Family" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "parent": { "type": ["string", "null"] },
+        "path": {
+          "description": "Repo-relative path that must exist.",
+          "type": ["string", "null"]
+        },
+        "summary": {
+          "description": "One sentence saying what it is.",
+          "type": ["string", "null"]
+        },
+        "tier": { "anyOf": [{ "$ref": "#/$defs/Tier" }, { "type": "null" }] },
+        "refs": { "$ref": "#/$defs/Refs" },
+        "derived": {
+          "anyOf": [{ "$ref": "#/$defs/Derived" }, { "type": "null" }]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["id", "label", "family", "kind"]
+    },
+    "Family": {
+      "description": "What a node is to a reader; the viewer colours by family.",
+      "type": "string",
+      "enum": ["surface", "service", "store", "agent", "external"]
+    },
+    "NodeKind": {
+      "description": "What a node is in the repo. `file` appears only in a bundle, from the live\nwalk; the committed model never lists a file.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "surface",
+            "service",
+            "store",
+            "agent",
+            "external",
+            "group",
+            "crate",
+            "package",
+            "app",
+            "directory",
+            "resource",
+            "file"
+          ]
+        },
+        {
+          "description": "A record collection, read from the schema bundle.",
+          "type": "string",
+          "const": "collection"
+        },
+        {
+          "description": "A curated group of record collections.",
+          "type": "string",
+          "const": "area"
+        }
+      ]
+    },
+    "Tier": {
+      "description": "Where a part runs, which the pictures group it by. A part with no tier\n(a crate, a directory) sits outside every group.",
+      "oneOf": [
+        {
+          "description": "On the person's own machine: desktop and mobile apps, browser\nextensions, local daemons and their stores.",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "The repository's own services and resources in a cloud.",
+          "type": "string",
+          "const": "cloud"
+        },
+        {
+          "description": "At the network edge: edge workers and realtime relays.",
+          "type": "string",
+          "const": "edge"
+        },
+        {
+          "description": "The vendors the repository's services call: push, media and storage\nproviders.",
+          "type": "string",
+          "const": "providers"
+        },
+        {
+          "description": "Everything else outside the repo's own services.",
+          "type": "string",
+          "const": "external"
+        }
+      ]
+    },
+    "Refs": {
+      "type": "object",
+      "properties": {
+        "term": {
+          "description": "A term id in `.rosetta/glossary.json`.",
+          "type": ["string", "null"]
+        },
+        "rules": {
+          "description": "Rule ids in the configured local rulebook.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "principles": {
+          "description": "Principle ids in the configured local rulebook.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "docs": {
+          "description": "Repo-relative paths.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Derived": {
+      "description": "Marks what `atlas sync` owns, naming the file it was read from.",
+      "type": "object",
+      "properties": { "source": { "type": "string" } },
+      "additionalProperties": false,
+      "required": ["source"]
+    },
+    "Edge": {
+      "type": "object",
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "kind": { "$ref": "#/$defs/EdgeKind" },
+        "label": { "type": ["string", "null"] },
+        "derived": {
+          "anyOf": [{ "$ref": "#/$defs/Derived" }, { "type": "null" }]
+        },
+        "evidence": {
+          "description": "Populated in a viewer bundle or explicitly supplied by a curator.",
+          "anyOf": [{ "$ref": "#/$defs/EdgeEvidence" }, { "type": "null" }]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"]
+    },
+    "EdgeKind": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "calls",
+            "reads",
+            "writes",
+            "publishes",
+            "delivers",
+            "deploys",
+            "contains"
+          ]
+        },
+        {
+          "description": "A manifest dependency proves availability, not a runtime call or data access.",
+          "type": "string",
+          "const": "depends"
+        },
+        {
+          "description": "A record collection's ref field; its label is the field.",
+          "type": "string",
+          "const": "refs"
+        }
+      ]
+    },
+    "EdgeEvidence": {
+      "type": "object",
+      "properties": {
+        "basis": { "$ref": "#/$defs/EvidenceBasis" },
+        "source": { "type": "string" },
+        "extractor": { "type": "string" },
+        "revision": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false,
+      "required": ["basis", "source", "extractor"]
+    },
+    "EvidenceBasis": {
+      "type": "string",
+      "enum": [
+        "declared_intent",
+        "manifest_dependency",
+        "schema_fact",
+        "infrastructure_fact",
+        "source_fact"
+      ]
+    },
+    "View": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "$ref": "#/$defs/ViewKind" },
+        "title": { "type": "string" },
+        "description": {
+          "description": "One line for the view menu.",
+          "type": "string"
+        },
+        "include": {
+          "description": "The nodes a custom view shows.",
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "steps": {
+          "description": "A flow's steps, numbered in order.",
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/Step" }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["id", "kind", "title", "description"]
+    },
+    "ViewKind": {
+      "oneOf": [
+        {
+          "description": "Every part, grouped by tier, and the edges between them. Built.",
+          "type": "string",
+          "const": "overview"
+        },
+        {
+          "description": "Numbered steps across parts. Declared.",
+          "type": "string",
+          "const": "flow"
+        },
+        {
+          "description": "The cloud resources that hold state or run, grouped by the file that\ndeclares them, and what uses them. Built.",
+          "type": "string",
+          "const": "infra"
+        },
+        {
+          "description": "Where state lives and how it moves: every read, write, publish and\ndelivery and the parts at their ends, stores drawn as cylinders. Built.",
+          "type": "string",
+          "const": "data"
+        },
+        {
+          "description": "The record collections: their areas, and per area its collections\nand their refs. Built when the model has a `records` section; the\nmodel never declares it.",
+          "type": "string",
+          "const": "records"
+        },
+        {
+          "description": "One picture per part: what it uses and what uses it. Every bundle has\nexactly one, built from the edges; the model never declares it.",
+          "type": "string",
+          "const": "connections"
+        },
+        {
+          "description": "The parts a person lists, grouped by tier, with the edges between\nthem. Declared.",
+          "type": "string",
+          "const": "custom"
+        }
+      ]
+    },
+    "Step": {
+      "type": "object",
+      "properties": {
+        "node": { "type": "string" },
+        "label": {
+          "description": "What happens at this step.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["node", "label"]
+    },
+    "Capability": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Stable identity, independent of display name or implementation path.",
+          "type": "string"
+        },
+        "name": { "type": "string" },
+        "purpose": {
+          "description": "What this capability enables, as a reviewed human statement.",
+          "type": "string"
+        },
+        "status": { "$ref": "#/$defs/CapabilityStatus", "default": "settled" },
+        "terms": { "type": "array", "items": { "type": "string" } },
+        "parts": { "type": "array", "items": { "type": "string" } },
+        "implementation": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ImplementationTarget" }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["id", "name", "purpose"]
+    },
+    "CapabilityStatus": { "type": "string", "enum": ["settled", "proposed"] },
+    "ImplementationTarget": {
+      "type": "object",
+      "properties": {
+        "part": {
+          "description": "A responsible part. The path may lie below a different package.",
+          "type": "string"
+        },
+        "path": {
+          "description": "A repository-relative source file or directory, checked separately.",
+          "type": "string"
+        },
+        "symbol": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false,
+      "required": ["part", "path"]
+    },
+    "Records": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "Repo-relative path of a JSON Schema bundle. The collection-map key\ncomes from rosetta.toml, with Rosetta and Virgil extensions accepted.",
+          "type": "string"
+        },
+        "areas": {
+          "description": "Each collection belongs to exactly one area.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/RecordArea" }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["file", "areas"]
+    },
+    "RecordArea": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Kebab-case and unique; `other` is where an unplaced collection goes.",
+          "type": "string"
+        },
+        "title": { "type": "string" },
+        "collections": {
+          "description": "Collection names, or a prefix ending in `*` (`bot_*`).",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["id", "title", "collections"]
+    }
+  }
+}

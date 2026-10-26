@@ -1,0 +1,20 @@
+flowchart LR
+  n1["Door"]
+  click n1 "atlas:door"
+  n2["Web app"]
+  click n2 "atlas:web"
+  n3["cloudrunv2.Service · door"]
+  click n3 "atlas:infra-src-compute-door-cloudrunv2-service"
+  n4["Store"]
+  click n4 "atlas:store"
+  n2 -->|"calls · request/answer"| n1
+  n3 -->|"deploys · runs"| n1
+  n1 -->|"writes"| n4
+  class n1,n3 fam-service
+  class n4 fam-store
+  class n2 fam-surface
+  class n1 is-focus
+  class n3 kind-resource
+  class n1 kind-service
+  class n4 kind-store
+  class n2 kind-surface

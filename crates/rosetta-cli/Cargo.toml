@@ -1,0 +1,30 @@
+[package]
+name = "rosetta-repo-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "rosetta"
+path = "src/main.rs"
+
+[dependencies]
+rosetta-atlas = { package = "rosetta-repo-atlas", path = "../rosetta-atlas", version = "0.1.0" }
+rosetta-core = { package = "rosetta-repo-core", path = "../rosetta-core", version = "0.1.0" }
+rosetta-glossary = { package = "rosetta-repo-glossary", path = "../rosetta-glossary", version = "0.1.0" }
+rosetta-mcp = { package = "rosetta-repo-mcp", path = "../rosetta-mcp", version = "0.1.0" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

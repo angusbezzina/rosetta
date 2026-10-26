@@ -1,0 +1,6 @@
+[refs]
+rulebook = "whetstone/rulebook.json"
+
+[[name_sources]]
+glob = "packages/virgil-schema/src/generated/schemas.json"
+pointer = "/x-virgil-collections"

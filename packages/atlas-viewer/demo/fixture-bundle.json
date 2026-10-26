@@ -1,0 +1,1116 @@
+{
+  "schema": "rosetta.atlas-bundle/v1",
+  "project": {
+    "name": "virgil",
+    "repo": "gpu-cli/virgil"
+  },
+  "views": [
+    {
+      "id": "overview",
+      "kind": "overview",
+      "title": "Overview",
+      "description": "The whole, small",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Desktop app\"]\n    n2[\"HUD\"]\n    n3[\"Daemon\"]\n    n4[\"SQLite replica\"]\n  end\n  subgraph g2[\"Cell\"]\n    n5[\"Door\"]\n    n6[\"Worker\"]\n    n7[\"Delivery\"]\n    n8[\"Postgres cells\"]\n  end\n  subgraph g3[\"Edge\"]\n    n9[\"Realtime edge\"]\n  end\n  subgraph g4[\"Providers\"]\n    n10[\"Cloud KMS\"]\n  end\n  subgraph g5[\"External\"]\n    n11[\"Clerk\"]\n    n12[\"Slack, Telegram and Discord\"]\n  end\n  n13[\"Cato\"]\n  n1 -->|calls| n3\n  n2 -->|calls| n3\n  n3 -->|calls| n5\n  n3 -->|writes| n4\n  n5 -->|writes| n8\n  n5 -->|reads| n10\n  n5 -->|publishes| n9\n  n9 -->|delivers| n3\n  n6 -->|reads| n8\n  n6 -->|calls| n7\n  n7 -->|delivers| n12\n  n1 -->|calls| n11\n  n13 -->|deploys| n5\n  class n1 fam-surface,kind-app\n  class n2 fam-surface,kind-surface\n  class n3 fam-service,kind-service\n  class n4 fam-store,kind-store\n  class n5 fam-service,kind-service\n  class n6 fam-service,kind-service\n  class n7 fam-service,kind-service\n  class n8 fam-store,kind-store\n  class n9 fam-service,kind-service\n  class n10 fam-store,kind-store\n  class n11 fam-external,kind-external\n  class n12 fam-external,kind-external\n  class n13 fam-agent,kind-agent\n  click n1 \"atlas:desktop-app\"\n  click n2 \"atlas:hud\"\n  click n3 \"atlas:daemon\"\n  click n4 \"atlas:sqlite-replica\"\n  click n5 \"atlas:door\"\n  click n6 \"atlas:worker\"\n  click n7 \"atlas:delivery\"\n  click n8 \"atlas:postgres-cells\"\n  click n9 \"atlas:realtime-edge\"\n  click n10 \"atlas:cloud-kms\"\n  click n11 \"atlas:clerk\"\n  click n12 \"atlas:chat-providers\"\n  click n13 \"atlas:cato\"\n"
+      }
+    },
+    {
+      "id": "send-a-message",
+      "kind": "flow",
+      "title": "Flow",
+      "description": "A message from send to every device",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Desktop app\"]\n    n2[\"Daemon\"]\n  end\n  subgraph g2[\"Cell\"]\n    n3[\"Door\"]\n  end\n  subgraph g3[\"Edge\"]\n    n4[\"Realtime edge\"]\n  end\n  n1 -->|1. You send a message| n2\n  n2 -->|2. Writes it to the replica| n3\n  n3 -->|3. Commits it and answers| n4\n  n4 -->|4. Carries the signed bundle| n2\n  class n1 fam-surface,kind-app\n  class n2 fam-service,kind-service\n  class n3 fam-service,kind-service\n  class n4 fam-service,kind-service\n  click n1 \"atlas:desktop-app\"\n  click n2 \"atlas:daemon\"\n  click n3 \"atlas:door\"\n  click n4 \"atlas:realtime-edge\"\n"
+      }
+    },
+    {
+      "id": "data",
+      "kind": "data",
+      "title": "Data",
+      "description": "Where data is kept, and what reads and writes it.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  n1[\"Daemon\"]\n  n2[\"Door\"]\n  n3[\"Worker\"]\n  n4[(\"SQLite replica\")]\n  n5[(\"Postgres cells\")]\n  n6[(\"Cloud KMS\")]\n  n1 -->|writes| n4\n  n2 -->|writes| n5\n  n6 -->|reads| n2\n  n5 -->|reads| n3\n  class n1 fam-service,kind-service\n  class n2 fam-service,kind-service\n  class n3 fam-service,kind-service\n  class n4 fam-store,kind-store\n  class n5 fam-store,kind-store\n  class n6 fam-store,kind-store\n  click n1 \"atlas:daemon\"\n  click n2 \"atlas:door\"\n  click n3 \"atlas:worker\"\n  click n4 \"atlas:sqlite-replica\"\n  click n5 \"atlas:postgres-cells\"\n  click n6 \"atlas:cloud-kms\"\n"
+      }
+    },
+    {
+      "id": "records",
+      "kind": "records",
+      "title": "Records",
+      "description": "The group's record collections and the refs between them.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  n1[\"Messages and channels\"]\n  n2[\"Tasks and goals\"]\n  n2 -->|1 ref| n1\n  class n1 fam-store,kind-area\n  class n2 fam-store,kind-area\n  click n1 \"atlas:records-area%3Amessages\"\n  click n2 \"atlas:records-area%3Atasks\"\n",
+        "records-area:messages": "flowchart LR\n  n1[\"message\"]\n  n2[\"channel\"]\n  n3[\"Tasks and goals\"]\n  n1 -->|channel| n2\n  n3 -->|channel| n2\n  class n1 fam-store,kind-collection,scope-container\n  class n2 fam-store,kind-collection,scope-container\n  class n3 fam-store,kind-area\n  click n1 \"atlas:records%3Amessage\"\n  click n2 \"atlas:records%3Achannel\"\n  click n3 \"atlas:records-area%3Atasks\"\n",
+        "records-area:tasks": "flowchart LR\n  n1[\"task\"]\n  n2[\"goal\"]\n  n3[\"Messages and channels\"]\n  n1 -->|goal| n2\n  n1 -->|channel| n3\n  class n1 fam-store,kind-collection,scope-private\n  class n2 fam-store,kind-collection,scope-recipient\n  class n3 fam-store,kind-area\n  click n1 \"atlas:records%3Atask\"\n  click n2 \"atlas:records%3Agoal\"\n  click n3 \"atlas:records-area%3Amessages\"\n"
+      }
+    },
+    {
+      "id": "infra",
+      "kind": "infra",
+      "title": "Infra",
+      "description": "The deployed shape",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  n1[\"HTTPS load balancer\"]\n  n2[\"Door on Cloud Run\"]\n  n3[\"Worker on Cloud Run\"]\n  n4[\"Cloud Tasks\"]\n  n5[\"Cloud SQL\"]\n  n6[\"Cloud KMS\"]\n  n1 -->|calls| n2\n  n2 -->|writes| n5\n  n2 -->|reads| n6\n  n4 -->|calls| n3\n  n3 -->|reads| n5\n  class n1 fam-external,kind-resource\n  class n2 fam-service,kind-resource\n  class n3 fam-service,kind-resource\n  class n4 fam-external,kind-resource\n  class n5 fam-store,kind-resource\n  class n6 fam-store,kind-store\n  click n1 \"atlas:load-balancer\"\n  click n2 \"atlas:run-door\"\n  click n3 \"atlas:run-worker\"\n  click n4 \"atlas:cloud-tasks\"\n  click n5 \"atlas:cloud-sql\"\n  click n6 \"atlas:cloud-kms\"\n"
+      }
+    },
+    {
+      "id": "connections",
+      "kind": "connections",
+      "title": "Connections",
+      "description": "What a part uses and what uses it.",
+      "default_root": "",
+      "sources": {
+        "desktop-app": "flowchart LR\n  n1[\"Desktop app\"]\n  n2[\"Daemon\"]\n  n3[\"Clerk\"]\n  n1 -->|calls| n2\n  n1 -->|calls| n3\n  class n1 fam-surface,kind-app,is-focus\n  class n2 fam-service,kind-service\n  class n3 fam-external,kind-external\n  click n1 \"atlas:desktop-app\"\n  click n2 \"atlas:daemon\"\n  click n3 \"atlas:clerk\"\n",
+        "hud": "flowchart LR\n  n1[\"HUD\"]\n  n2[\"Daemon\"]\n  n1 -->|calls| n2\n  class n1 fam-surface,kind-surface,is-focus\n  class n2 fam-service,kind-service\n  click n1 \"atlas:hud\"\n  click n2 \"atlas:daemon\"\n",
+        "daemon": "flowchart LR\n  n1[\"Desktop app\"]\n  n2[\"HUD\"]\n  n3[\"Realtime edge\"]\n  n4[\"Daemon\"]\n  n5[\"Door\"]\n  n6[\"SQLite replica\"]\n  n1 -->|calls| n4\n  n2 -->|calls| n4\n  n3 -->|delivers| n4\n  n4 -->|calls| n5\n  n4 -->|writes| n6\n  class n1 fam-surface,kind-app\n  class n2 fam-surface,kind-surface\n  class n3 fam-service,kind-service\n  class n4 fam-service,kind-service,is-focus\n  class n5 fam-service,kind-service\n  class n6 fam-store,kind-store\n  click n1 \"atlas:desktop-app\"\n  click n2 \"atlas:hud\"\n  click n3 \"atlas:realtime-edge\"\n  click n4 \"atlas:daemon\"\n  click n5 \"atlas:door\"\n  click n6 \"atlas:sqlite-replica\"\n",
+        "door": "flowchart LR\n  n1[\"Daemon\"]\n  n2[\"Cato\"]\n  n3[\"Door\"]\n  n4[\"Postgres cells\"]\n  n5[\"Cloud KMS\"]\n  n6[\"Realtime edge\"]\n  n1 -->|calls| n3\n  n2 -->|deploys| n3\n  n3 -->|writes| n4\n  n3 -->|reads| n5\n  n3 -->|publishes| n6\n  class n1 fam-service,kind-service\n  class n2 fam-agent,kind-agent\n  class n3 fam-service,kind-service,is-focus\n  class n4 fam-store,kind-store\n  class n5 fam-store,kind-store\n  class n6 fam-service,kind-service\n  click n1 \"atlas:daemon\"\n  click n2 \"atlas:cato\"\n  click n3 \"atlas:door\"\n  click n4 \"atlas:postgres-cells\"\n  click n5 \"atlas:cloud-kms\"\n  click n6 \"atlas:realtime-edge\"\n",
+        "worker": "flowchart LR\n  n1[\"Worker\"]\n  n2[\"Postgres cells\"]\n  n3[\"Delivery\"]\n  n1 -->|reads| n2\n  n1 -->|calls| n3\n  class n1 fam-service,kind-service,is-focus\n  class n2 fam-store,kind-store\n  class n3 fam-service,kind-service\n  click n1 \"atlas:worker\"\n  click n2 \"atlas:postgres-cells\"\n  click n3 \"atlas:delivery\"\n",
+        "delivery": "flowchart LR\n  n1[\"Worker\"]\n  n2[\"Delivery\"]\n  n3[\"Slack, Telegram and Discord\"]\n  n1 -->|calls| n2\n  n2 -->|delivers| n3\n  class n1 fam-service,kind-service\n  class n2 fam-service,kind-service,is-focus\n  class n3 fam-external,kind-external\n  click n1 \"atlas:worker\"\n  click n2 \"atlas:delivery\"\n  click n3 \"atlas:chat-providers\"\n",
+        "realtime-edge": "flowchart LR\n  n1[\"Door\"]\n  n2[\"Realtime edge\"]\n  n3[\"Daemon\"]\n  n1 -->|publishes| n2\n  n2 -->|delivers| n3\n  class n1 fam-service,kind-service\n  class n2 fam-service,kind-service,is-focus\n  class n3 fam-service,kind-service\n  click n1 \"atlas:door\"\n  click n2 \"atlas:realtime-edge\"\n  click n3 \"atlas:daemon\"\n",
+        "postgres-cells": "flowchart LR\n  n1[\"Door\"]\n  n2[\"Worker\"]\n  n3[\"Postgres cells\"]\n  n1 -->|writes| n3\n  n2 -->|reads| n3\n  class n1 fam-service,kind-service\n  class n2 fam-service,kind-service\n  class n3 fam-store,kind-store,is-focus\n  click n1 \"atlas:door\"\n  click n2 \"atlas:worker\"\n  click n3 \"atlas:postgres-cells\"\n",
+        "sqlite-replica": "flowchart LR\n  n1[\"Daemon\"]\n  n2[\"SQLite replica\"]\n  n1 -->|writes| n2\n  class n1 fam-service,kind-service\n  class n2 fam-store,kind-store,is-focus\n  click n1 \"atlas:daemon\"\n  click n2 \"atlas:sqlite-replica\"\n",
+        "cloud-kms": "flowchart LR\n  n1[\"Door\"]\n  n2[\"Door on Cloud Run\"]\n  n3[\"Cloud KMS\"]\n  n1 -->|reads| n3\n  n2 -->|reads| n3\n  class n1 fam-service,kind-service\n  class n2 fam-service,kind-resource\n  class n3 fam-store,kind-store,is-focus\n  click n1 \"atlas:door\"\n  click n2 \"atlas:run-door\"\n  click n3 \"atlas:cloud-kms\"\n",
+        "cato": "flowchart LR\n  n1[\"Cato\"]\n  n2[\"Door\"]\n  n1 -->|deploys| n2\n  class n1 fam-agent,kind-agent,is-focus\n  class n2 fam-service,kind-service\n  click n1 \"atlas:cato\"\n  click n2 \"atlas:door\"\n",
+        "clerk": "flowchart LR\n  n1[\"Desktop app\"]\n  n2[\"Clerk\"]\n  n1 -->|calls| n2\n  class n1 fam-surface,kind-app\n  class n2 fam-external,kind-external,is-focus\n  click n1 \"atlas:desktop-app\"\n  click n2 \"atlas:clerk\"\n",
+        "chat-providers": "flowchart LR\n  n1[\"Delivery\"]\n  n2[\"Slack, Telegram and Discord\"]\n  n1 -->|delivers| n2\n  class n1 fam-service,kind-service\n  class n2 fam-external,kind-external,is-focus\n  click n1 \"atlas:delivery\"\n  click n2 \"atlas:chat-providers\"\n",
+        "load-balancer": "flowchart LR\n  n1[\"HTTPS load balancer\"]\n  n2[\"Door on Cloud Run\"]\n  n1 -->|calls| n2\n  class n1 fam-external,kind-resource,is-focus\n  class n2 fam-service,kind-resource\n  click n1 \"atlas:load-balancer\"\n  click n2 \"atlas:run-door\"\n",
+        "run-door": "flowchart LR\n  n1[\"HTTPS load balancer\"]\n  n2[\"Door on Cloud Run\"]\n  n3[\"Cloud SQL\"]\n  n4[\"Cloud KMS\"]\n  n1 -->|calls| n2\n  n2 -->|writes| n3\n  n2 -->|reads| n4\n  class n1 fam-external,kind-resource\n  class n2 fam-service,kind-resource,is-focus\n  class n3 fam-store,kind-resource\n  class n4 fam-store,kind-store\n  click n1 \"atlas:load-balancer\"\n  click n2 \"atlas:run-door\"\n  click n3 \"atlas:cloud-sql\"\n  click n4 \"atlas:cloud-kms\"\n",
+        "run-worker": "flowchart LR\n  n1[\"Cloud Tasks\"]\n  n2[\"Worker on Cloud Run\"]\n  n3[\"Cloud SQL\"]\n  n1 -->|calls| n2\n  n2 -->|reads| n3\n  class n1 fam-external,kind-resource\n  class n2 fam-service,kind-resource,is-focus\n  class n3 fam-store,kind-resource\n  click n1 \"atlas:cloud-tasks\"\n  click n2 \"atlas:run-worker\"\n  click n3 \"atlas:cloud-sql\"\n",
+        "cloud-tasks": "flowchart LR\n  n1[\"Cloud Tasks\"]\n  n2[\"Worker on Cloud Run\"]\n  n1 -->|calls| n2\n  class n1 fam-external,kind-resource,is-focus\n  class n2 fam-service,kind-resource\n  click n1 \"atlas:cloud-tasks\"\n  click n2 \"atlas:run-worker\"\n",
+        "cloud-sql": "flowchart LR\n  n1[\"Door on Cloud Run\"]\n  n2[\"Worker on Cloud Run\"]\n  n3[\"Cloud SQL\"]\n  n1 -->|writes| n3\n  n2 -->|reads| n3\n  class n1 fam-service,kind-resource\n  class n2 fam-service,kind-resource\n  class n3 fam-store,kind-resource,is-focus\n  click n1 \"atlas:run-door\"\n  click n2 \"atlas:run-worker\"\n  click n3 \"atlas:cloud-sql\"\n",
+        "records:message": "flowchart LR\n  n1[\"message\"]\n  n2[\"channel\"]\n  n1 -->|channel| n2\n  class n1 fam-store,kind-collection,is-focus\n  class n2 fam-store,kind-collection\n  click n1 \"atlas:records%3Amessage\"\n  click n2 \"atlas:records%3Achannel\"\n",
+        "records:channel": "flowchart LR\n  n1[\"message\"]\n  n2[\"task\"]\n  n3[\"channel\"]\n  n1 -->|channel| n3\n  n2 -->|channel| n3\n  class n1 fam-store,kind-collection\n  class n2 fam-store,kind-collection\n  class n3 fam-store,kind-collection,is-focus\n  click n1 \"atlas:records%3Amessage\"\n  click n2 \"atlas:records%3Atask\"\n  click n3 \"atlas:records%3Achannel\"\n",
+        "records:task": "flowchart LR\n  n1[\"task\"]\n  n2[\"goal\"]\n  n3[\"channel\"]\n  n1 -->|goal| n2\n  n1 -->|channel| n3\n  class n1 fam-store,kind-collection,is-focus\n  class n2 fam-store,kind-collection\n  class n3 fam-store,kind-collection\n  click n1 \"atlas:records%3Atask\"\n  click n2 \"atlas:records%3Agoal\"\n  click n3 \"atlas:records%3Achannel\"\n",
+        "records:goal": "flowchart LR\n  n1[\"task\"]\n  n2[\"goal\"]\n  n1 -->|goal| n2\n  class n1 fam-store,kind-collection\n  class n2 fam-store,kind-collection,is-focus\n  click n1 \"atlas:records%3Atask\"\n  click n2 \"atlas:records%3Agoal\"\n"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "desktop-app",
+      "label": "Desktop app",
+      "family": "surface",
+      "kind": "app",
+      "path": "apps/virgil-app",
+      "summary": "The thin Electron front end of the daemon; product logic stays in the daemon.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": ["principle.product-logic-in-daemon"],
+        "docs": []
+      },
+      "tier": "device"
+    },
+    {
+      "id": "hud",
+      "label": "HUD",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/virgil-app/src/renderer/hud",
+      "summary": "The always-on overlay.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "device"
+    },
+    {
+      "id": "daemon",
+      "label": "Daemon",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-desktop",
+      "summary": "The always-on process where product logic lives.",
+      "has_children": false,
+      "refs": {
+        "term": "term.daemon",
+        "rules": [],
+        "principles": ["principle.product-logic-in-daemon"],
+        "docs": []
+      },
+      "tier": "device"
+    },
+    {
+      "id": "door",
+      "label": "Door",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve",
+      "summary": "Answers a request; never streams.",
+      "has_children": false,
+      "refs": {
+        "term": "term.door",
+        "rules": ["rule.door-no-stream", "rule.typed-payloads"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "tier": "cloud",
+      "updated": {
+        "at": "2026-10-20T14:03:11-06:00",
+        "subject": "Answer a send before the edge carries it"
+      }
+    },
+    {
+      "id": "worker",
+      "label": "Worker",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve",
+      "summary": "Runs the outbox, events and lifecycle work.",
+      "has_children": false,
+      "refs": {
+        "term": "term.worker",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "cloud"
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve",
+      "summary": "Sends through providers.",
+      "has_children": false,
+      "refs": {
+        "term": "term.delivery",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "cloud"
+    },
+    {
+      "id": "realtime-edge",
+      "label": "Realtime edge",
+      "family": "service",
+      "kind": "service",
+      "path": "apps/realtime-edge",
+      "summary": "The one live transport; it carries each signed bundle to the daemons.",
+      "has_children": false,
+      "refs": {
+        "term": "term.edge",
+        "rules": [],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": []
+      },
+      "tier": "edge"
+    },
+    {
+      "id": "postgres-cells",
+      "label": "Postgres cells",
+      "family": "store",
+      "kind": "store",
+      "summary": "The server store the door commits to.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "cloud"
+    },
+    {
+      "id": "sqlite-replica",
+      "label": "SQLite replica",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/virgil-replica-sqlite",
+      "summary": "The daemon's local copy, written before the door answers.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "device"
+    },
+    {
+      "id": "cloud-kms",
+      "label": "Cloud KMS",
+      "family": "store",
+      "kind": "store",
+      "summary": "Holds the content key; the door reads content only through it.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "providers"
+    },
+    {
+      "id": "cato",
+      "label": "Cato",
+      "family": "agent",
+      "kind": "agent",
+      "path": "tools/cato",
+      "summary": "Readies, verifies and lands pull requests onto main.",
+      "has_children": false,
+      "refs": {
+        "term": "term.cato",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "clerk",
+      "label": "Clerk",
+      "family": "external",
+      "kind": "external",
+      "summary": "Sign-in for every surface.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "external"
+    },
+    {
+      "id": "chat-providers",
+      "label": "Slack, Telegram and Discord",
+      "family": "external",
+      "kind": "external",
+      "summary": "Where Delivery sends.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "tier": "external"
+    },
+    {
+      "id": "load-balancer",
+      "label": "HTTPS load balancer",
+      "family": "external",
+      "kind": "resource",
+      "summary": "Fronts the door with one HTTPS address.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "run-door",
+      "label": "Door on Cloud Run",
+      "family": "service",
+      "kind": "resource",
+      "path": "infra/src/compute/cloudrun.ts",
+      "summary": "Resident: an instance stays warm to answer.",
+      "has_children": false,
+      "refs": {
+        "term": "term.door",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "run-worker",
+      "label": "Worker on Cloud Run",
+      "family": "service",
+      "kind": "resource",
+      "path": "infra/src/compute/cloudrun.ts",
+      "summary": "Min 0: Cloud Tasks wakes it when work is queued.",
+      "has_children": false,
+      "refs": {
+        "term": "term.worker",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "cloud-tasks",
+      "label": "Cloud Tasks",
+      "family": "external",
+      "kind": "resource",
+      "path": "infra/src/compute/cell-wake-queue.ts",
+      "summary": "Wakes the worker when work is queued.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "cloud-sql",
+      "label": "Cloud SQL",
+      "family": "store",
+      "kind": "resource",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "Hosts the Postgres cells.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "repo",
+      "label": "virgil",
+      "family": "service",
+      "kind": "group",
+      "path": ".",
+      "summary": "The repository root.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "apps",
+      "label": "apps",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "apps",
+      "summary": "Every app and front end.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "crates",
+      "label": "crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "crates",
+      "summary": "The Rust workspace members.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "packages",
+      "label": "packages",
+      "family": "store",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "packages",
+      "summary": "The shared TypeScript packages.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "infra",
+      "label": "infra",
+      "family": "external",
+      "kind": "package",
+      "parent": "repo",
+      "path": "infra",
+      "summary": "The Pulumi program.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "apps-virgil-app",
+      "label": "virgil-app",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-app",
+      "summary": "The Electron app.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "crates-virgil-serve",
+      "label": "virgil-serve",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-serve",
+      "summary": "One binary, three services by subcommand: door, worker and delivery.",
+      "has_children": true,
+      "refs": {
+        "term": "term.door",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "crates-virgil-desktop",
+      "label": "virgil-desktop",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-desktop",
+      "summary": "The daemon.",
+      "has_children": true,
+      "refs": {
+        "term": "term.daemon",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "packages-virgil-schema",
+      "label": "virgil-schema",
+      "family": "store",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-schema",
+      "summary": "Records: the typed contract.",
+      "has_children": true,
+      "refs": {
+        "term": "term.records",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "d:apps/virgil-app/src",
+      "label": "src",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "apps-virgil-app",
+      "path": "apps/virgil-app/src",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:apps/virgil-app/src/main.ts",
+      "label": "main.ts",
+      "family": "surface",
+      "kind": "file",
+      "parent": "d:apps/virgil-app/src",
+      "path": "apps/virgil-app/src/main.ts",
+      "lines": 214,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:apps/virgil-app/src/preload.ts",
+      "label": "preload.ts",
+      "family": "surface",
+      "kind": "file",
+      "parent": "d:apps/virgil-app/src",
+      "path": "apps/virgil-app/src/preload.ts",
+      "lines": 88,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:apps/virgil-app/package.json",
+      "label": "package.json",
+      "family": "surface",
+      "kind": "file",
+      "parent": "apps-virgil-app",
+      "path": "apps/virgil-app/package.json",
+      "lines": 61,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "d:crates/virgil-serve/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-virgil-serve",
+      "path": "crates/virgil-serve/src",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/Cargo.toml",
+      "label": "Cargo.toml",
+      "family": "service",
+      "kind": "file",
+      "parent": "crates-virgil-serve",
+      "path": "crates/virgil-serve/Cargo.toml",
+      "lines": 42,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      },
+      "updated": {
+        "at": "2026-09-02T09:15:00-06:00",
+        "subject": "Pin the door's tonic to 0.14"
+      }
+    },
+    {
+      "id": "d:crates/virgil-serve/src/door",
+      "label": "door",
+      "family": "service",
+      "kind": "directory",
+      "parent": "d:crates/virgil-serve/src",
+      "path": "crates/virgil-serve/src/door",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/src/main.rs",
+      "label": "main.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/src",
+      "path": "crates/virgil-serve/src/main.rs",
+      "lines": 133,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/src/worker.rs",
+      "label": "worker.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/src",
+      "path": "crates/virgil-serve/src/worker.rs",
+      "lines": 1204,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/src/delivery.rs",
+      "label": "delivery.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/src",
+      "path": "crates/virgil-serve/src/delivery.rs",
+      "lines": 876,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/src/door/mod.rs",
+      "label": "mod.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/src/door",
+      "path": "crates/virgil-serve/src/door/mod.rs",
+      "lines": 10569,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/src/door/routes.rs",
+      "label": "routes.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/src/door",
+      "path": "crates/virgil-serve/src/door/routes.rs",
+      "lines": 1,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "d:crates/virgil-desktop/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-virgil-desktop",
+      "path": "crates/virgil-desktop/src",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-desktop/src/lib.rs",
+      "label": "lib.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-desktop/src",
+      "path": "crates/virgil-desktop/src/lib.rs",
+      "lines": 512,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:packages/virgil-schema/package.json",
+      "label": "package.json",
+      "family": "store",
+      "kind": "file",
+      "parent": "packages-virgil-schema",
+      "path": "packages/virgil-schema/package.json",
+      "lines": 37,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:packages/virgil-schema/CONTRACT.md",
+      "label": "CONTRACT.md",
+      "family": "store",
+      "kind": "file",
+      "parent": "packages-virgil-schema",
+      "path": "packages/virgil-schema/CONTRACT.md",
+      "lines": 420,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:infra/index.ts",
+      "label": "index.ts",
+      "family": "external",
+      "kind": "file",
+      "parent": "infra",
+      "path": "infra/index.ts",
+      "lines": 77,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "d:crates/virgil-serve/examples",
+      "label": "examples",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-virgil-serve",
+      "path": "crates/virgil-serve/examples",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/examples/send.rs",
+      "label": "send.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/examples",
+      "path": "crates/virgil-serve/examples/send.rs",
+      "lines": 58,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "d:crates/virgil-serve/tests",
+      "label": "tests",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-virgil-serve",
+      "path": "crates/virgil-serve/tests",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/tests/door.rs",
+      "label": "door.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/virgil-serve/tests",
+      "path": "crates/virgil-serve/tests/door.rs",
+      "lines": 640,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "f:crates/virgil-serve/README.md",
+      "label": "README.md",
+      "family": "service",
+      "kind": "file",
+      "parent": "crates-virgil-serve",
+      "path": "crates/virgil-serve/README.md",
+      "lines": 1,
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records-area:messages",
+      "label": "Messages and channels",
+      "family": "store",
+      "kind": "area",
+      "summary": "Where a conversation's messages and the channels they are in live.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records-area:tasks",
+      "label": "Tasks and goals",
+      "family": "store",
+      "kind": "area",
+      "summary": "What the group is doing and why.",
+      "has_children": true,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records:message",
+      "label": "message",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:messages",
+      "summary": "One message in a channel or thread.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records:channel",
+      "label": "channel",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:messages",
+      "summary": "A named place for a group's messages.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records:task",
+      "label": "task",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:tasks",
+      "summary": "One unit of work.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "records:goal",
+      "label": "goal",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:tasks",
+      "summary": "An outcome tasks serve.",
+      "has_children": false,
+      "refs": {
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "desktop-app",
+      "to": "daemon",
+      "kind": "calls"
+    },
+    {
+      "from": "hud",
+      "to": "daemon",
+      "kind": "calls"
+    },
+    {
+      "from": "daemon",
+      "to": "door",
+      "kind": "calls"
+    },
+    {
+      "from": "daemon",
+      "to": "sqlite-replica",
+      "kind": "writes"
+    },
+    {
+      "from": "door",
+      "to": "postgres-cells",
+      "kind": "writes"
+    },
+    {
+      "from": "door",
+      "to": "cloud-kms",
+      "kind": "reads"
+    },
+    {
+      "from": "door",
+      "to": "realtime-edge",
+      "kind": "publishes"
+    },
+    {
+      "from": "realtime-edge",
+      "to": "daemon",
+      "kind": "delivers"
+    },
+    {
+      "from": "worker",
+      "to": "postgres-cells",
+      "kind": "reads"
+    },
+    {
+      "from": "worker",
+      "to": "delivery",
+      "kind": "calls"
+    },
+    {
+      "from": "delivery",
+      "to": "chat-providers",
+      "kind": "delivers"
+    },
+    {
+      "from": "desktop-app",
+      "to": "clerk",
+      "kind": "calls"
+    },
+    {
+      "from": "cato",
+      "to": "door",
+      "kind": "deploys"
+    },
+    {
+      "from": "load-balancer",
+      "to": "run-door",
+      "kind": "calls"
+    },
+    {
+      "from": "run-door",
+      "to": "cloud-sql",
+      "kind": "writes"
+    },
+    {
+      "from": "run-door",
+      "to": "cloud-kms",
+      "kind": "reads"
+    },
+    {
+      "from": "cloud-tasks",
+      "to": "run-worker",
+      "kind": "calls"
+    },
+    {
+      "from": "run-worker",
+      "to": "cloud-sql",
+      "kind": "reads"
+    },
+    {
+      "from": "records:message",
+      "to": "records:channel",
+      "kind": "refs",
+      "label": "channel"
+    },
+    {
+      "from": "records:task",
+      "to": "records:goal",
+      "kind": "refs",
+      "label": "goal"
+    },
+    {
+      "from": "records:task",
+      "to": "records:channel",
+      "kind": "refs",
+      "label": "channel"
+    }
+  ],
+  "terms": [
+    {
+      "id": "term.door",
+      "name": "Door",
+      "definition": "The `virgil-serve` service that answers a request; it never streams.",
+      "avoid": [
+        {
+          "word": "server",
+          "except": []
+        },
+        {
+          "word": "backend",
+          "except": []
+        }
+      ],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.edge",
+      "name": "Edge",
+      "definition": "`apps/realtime-edge`, the only live transport.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.worker",
+      "name": "Worker",
+      "definition": "The `virgil-serve` service that runs the outbox, events and lifecycle work.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.delivery",
+      "name": "Delivery",
+      "definition": "The `virgil-serve` service that sends through providers.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.daemon",
+      "name": "Daemon",
+      "definition": "`virgil-desktop`, the always-on process where product logic lives; the Electron app is its thin front end.",
+      "avoid": [
+        {
+          "word": "agent",
+          "except": ["Claude Agent SDK"]
+        }
+      ],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.records",
+      "name": "Records",
+      "definition": "The typed contract for the group's data, generated from one source in `packages/virgil-schema` into Rust, JSON Schema and TypeScript.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.cato",
+      "name": "Cato",
+      "definition": "The merge agent: it readies a draft pull request, verifies it merged onto main and moves main to that commit.",
+      "avoid": [],
+      "status": "proposed",
+      "marked": false
+    }
+  ],
+  "rules": [
+    {
+      "id": "principle.door-answers-edge-is-live",
+      "kind": "principle",
+      "title": "The door answers; the edge is live"
+    },
+    {
+      "id": "principle.product-logic-in-daemon",
+      "kind": "principle",
+      "title": "Product logic lives in the daemon, not Electron"
+    },
+    {
+      "id": "rule.door-no-stream",
+      "kind": "rule",
+      "title": "The door never streams, long-polls or is re-read on a timer"
+    },
+    {
+      "id": "rule.typed-payloads",
+      "kind": "rule",
+      "title": "Payloads are typed across every boundary"
+    }
+  ]
+}

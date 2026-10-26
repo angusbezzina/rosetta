@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rosetta Atlas</title>
+<link rel="stylesheet" href="./atlas-viewer.css">
+<style>html,body{height:100%;margin:0}body{display:flex;flex-direction:column}#atlas{flex:1;min-height:0}</style>
+</head>
+<body>
+<nav id="focus-bar" class="rosetta-focus-bar" aria-label="Focused view" hidden></nav>
+<main id="atlas"></main>
+<script type="module">import { boot } from "./atlas-viewer.js"; boot(document.getElementById("atlas"));</script>
+</body>
+</html>

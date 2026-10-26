@@ -1,0 +1,4 @@
+[test]
+# The viewer builds DOM around Pele's SVG; happy-dom stands in for the browser
+# because these tests assert what is mounted, selected and filtered, not pixels.
+preload = ["./tests/setup.ts"]

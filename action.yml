@@ -1,0 +1,59 @@
+name: Rosetta checks
+
+description: Check a local repository's glossary and Atlas, annotating pull-request vocabulary findings.
+
+inputs:
+  version:
+    description: Rosetta release tag to download, such as v0.1.0.
+    required: false
+    default: v0.1.0
+  strict:
+    description: Fail the job when a selected check finds a problem.
+    required: false
+    default: 'false'
+  commands:
+    description: Comma-separated glossary-check, glossary-lint, atlas-check.
+    required: false
+    default: glossary-check,glossary-lint,atlas-check
+  binary-path:
+    description: Optional absolute path to an existing Rosetta binary; useful before a release.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rosetta
+      id: install
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/scripts/action-install.mjs"
+      env:
+        ROSETTA_VERSION: ${{ inputs.version }}
+        ROSETTA_BINARY_PATH: ${{ inputs.binary-path }}
+    - name: Register vocabulary problem matcher
+      shell: bash
+      run: echo "::add-matcher::$GITHUB_ACTION_PATH/scripts/action-problem-matcher.json"
+    - name: Check glossary and Atlas
+      id: scan
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/scripts/action-scan.mjs"
+      env:
+        ROSETTA_BIN: ${{ steps.install.outputs.path }}
+        ROSETTA_STRICT: ${{ inputs.strict }}
+        ROSETTA_COMMANDS: ${{ inputs.commands }}
+        ROSETTA_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+    - name: Remove vocabulary problem matcher
+      if: always()
+      shell: bash
+      run: echo '::remove-matcher owner=rosetta::'
+    - name: Upload vocabulary SARIF
+      if: steps.scan.outputs.sarif != ''
+      uses: github/codeql-action/upload-sarif@v4
+      continue-on-error: true
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif }}
+        category: rosetta-glossary
+    - name: Enforce strict mode
+      if: steps.scan.outputs.failed == 'true'
+      shell: bash
+      run: exit 1

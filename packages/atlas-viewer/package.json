@@ -1,0 +1,27 @@
+{
+  "name": "@angusbezzina/rosetta-atlas-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-free local atlas viewer for Rosetta bundles",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "scripts": {
+    "test": "bun test tests/viewer.test.ts tests/standalone.test.ts tests/pele.test.ts",
+    "check-types": "tsc --noEmit",
+    "build": "bun build.ts",
+    "build:check": "bun build.ts --check",
+    "demo": "bun demo/serve.ts"
+  },
+  "dependencies": {
+    "pele": "1.8.0"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "20.9.0",
+    "@types/bun": "1.3.14",
+    "happy-dom": "20.9.0",
+    "typescript": "7.0.2"
+  }
+}

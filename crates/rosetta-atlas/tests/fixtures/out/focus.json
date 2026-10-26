@@ -1,0 +1,132 @@
+{
+  "schema": "rosetta.focus/v1",
+  "id": "4f092bcf7f27e479",
+  "reference": "rv1.eyJ2ZXJzaW9uIjoxLCJzbmFwc2hvdCI6ImE4YTUwM2RlMzMwNTBiMGFlZDM0MjhlYWI5M2FmYTc2MDY0MjMwOTVmNGU1NTYxMzEwZTE3ZGE1MTJkNzM1MzAiLCJxdWVyeSI6eyJjYXBhYmlsaXR5IjoicmVxdWVzdC1wYXRoIiwicm9vdHMiOltdLCJwYXRocyI6W10sImxldmVsIjoiY29tcG9uZW50IiwiZGVwdGgiOjIsImtpbmRzIjpbXSwibWF4X25vZGVzIjozLCJtYXhfZWRnZXMiOjQ4fX0",
+  "snapshot": {
+    "repository": "example/fixture",
+    "head": null,
+    "dirty": true,
+    "model_revision": "6c1ff02daea6f1917771be2d5fce5e0c01d11b359d730cfdf3f6aa1f749ac12b",
+    "fingerprint": "a8a503de33050b0aed3428eab93afa7606423095f4e5561310e17da512d73530",
+    "coverage": "git_worktree"
+  },
+  "query": {
+    "capability": "request-path",
+    "roots": [],
+    "paths": [],
+    "level": "component",
+    "depth": 2,
+    "kinds": [],
+    "max_nodes": 3,
+    "max_edges": 48
+  },
+  "capabilities": [
+    {
+      "id": "request-path",
+      "name": "Request path",
+      "purpose": "Connect the surface to the door.",
+      "status": "settled",
+      "terms": ["term.door"],
+      "parts": ["web", "door"],
+      "implementation": [{ "part": "door", "path": "crates/door/src/main.rs" }]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "web",
+      "label": "Web app",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/web",
+      "summary": "The surface a person types into.",
+      "has_children": false,
+      "tier": "device",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "door",
+      "label": "Door",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/door",
+      "summary": "Answers a request; never streams.",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": {
+        "term": "term.door",
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/shipping.md"]
+      }
+    },
+    {
+      "id": "store",
+      "label": "Store",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/core",
+      "summary": "Where the records are kept.",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": {
+        "term": "term.store",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "door",
+      "to": "store",
+      "kind": "writes",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "a8a503de33050b0aed3428eab93afa7606423095f4e5561310e17da512d73530"
+      }
+    },
+    {
+      "from": "web",
+      "to": "door",
+      "kind": "calls",
+      "label": "request/answer",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "a8a503de33050b0aed3428eab93afa7606423095f4e5561310e17da512d73530"
+      }
+    }
+  ],
+  "diagram": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Web app\"]\n    click n1 \"atlas:web\"\n  end\n  subgraph g2[\"Cloud\"]\n    n2[\"Door\"]\n    click n2 \"atlas:door\"\n    n3[(\"Store\")]\n    click n3 \"atlas:store\"\n  end\n  n2 -->|\"writes\"| n3\n  n1 -->|\"calls · request/answer\"| n2\n  class n2 fam-service\n  class n3 fam-store\n  class n1 fam-surface\n  class n2 kind-service\n  class n3 kind-store\n  class n1 kind-surface\n",
+  "terms": [
+    {
+      "id": "term.door",
+      "name": "Door",
+      "definition": "The service that answers a request; it never streams.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.store",
+      "name": "Store",
+      "definition": "Where the records are kept.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    }
+  ],
+  "target_exists": { "crates/door/src/main.rs": true },
+  "implementation_links": [],
+  "omissions": {
+    "nodes_over_budget": 3,
+    "edges_over_budget": 0,
+    "edges_filtered": 0,
+    "beyond_depth": 0,
+    "implementation_links_not_drawn": 1
+  }
+}

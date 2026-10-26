@@ -1,0 +1,8 @@
+{
+  "name": "@fixture/web",
+  "private": true,
+  "dependencies": {
+    "@fixture/ui": "workspace:*",
+    "left-pad": "1.3.0"
+  }
+}

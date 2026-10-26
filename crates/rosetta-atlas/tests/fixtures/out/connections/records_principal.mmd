@@ -1,0 +1,9 @@
+flowchart LR
+  n1["principal"]
+  click n1 "atlas:records%3Aprincipal"
+  n2["message"]
+  click n2 "atlas:records%3Amessage"
+  n2 -->|"refs · decision.decided_by"| n1
+  class n1,n2 fam-store
+  class n1 is-focus
+  class n1,n2 kind-collection

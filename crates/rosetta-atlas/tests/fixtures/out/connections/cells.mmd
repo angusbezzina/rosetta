@@ -1,0 +1,9 @@
+flowchart LR
+  n1["Cells"]
+  click n1 "atlas:cells"
+  n2["Store"]
+  click n2 "atlas:store"
+  n2 -->|"writes"| n1
+  class n1,n2 fam-store
+  class n1 is-focus
+  class n1,n2 kind-store

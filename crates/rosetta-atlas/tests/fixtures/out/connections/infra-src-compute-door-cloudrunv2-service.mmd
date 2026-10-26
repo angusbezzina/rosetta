@@ -1,0 +1,10 @@
+flowchart LR
+  n1["cloudrunv2.Service · door"]
+  click n1 "atlas:infra-src-compute-door-cloudrunv2-service"
+  n2["Door"]
+  click n2 "atlas:door"
+  n1 -->|"deploys · runs"| n2
+  class n1,n2 fam-service
+  class n1 is-focus
+  class n1 kind-resource
+  class n2 kind-service

@@ -1,0 +1,10 @@
+{
+  "name": "@fresh/desktop",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.40.0"
+  },
+  "devDependencies": {
+    "electron": "38.0.0"
+  }
+}

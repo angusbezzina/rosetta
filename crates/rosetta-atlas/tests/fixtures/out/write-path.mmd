@@ -1,0 +1,25 @@
+flowchart LR
+  subgraph g1["Device"]
+    n1["Web app"]
+    click n1 "atlas:web"
+    n5["@fixture/ui"]
+    click n5 "atlas:packages-ui"
+  end
+  subgraph g2["Cloud"]
+    n2["Door"]
+    click n2 "atlas:door"
+    n3[("Store")]
+    click n3 "atlas:store"
+    n4[("Cells")]
+    click n4 "atlas:cells"
+  end
+  n1 -->|"calls · request/answer"| n2
+  n2 -->|"writes"| n3
+  n3 -->|"writes"| n4
+  class n2,n5 fam-service
+  class n3,n4 fam-store
+  class n1 fam-surface
+  class n5 kind-package
+  class n2 kind-service
+  class n3,n4 kind-store
+  class n1 kind-surface

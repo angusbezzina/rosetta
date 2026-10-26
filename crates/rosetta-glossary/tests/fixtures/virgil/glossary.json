@@ -1,0 +1,942 @@
+{
+  "schema": "virgil.glossary/v1",
+  "context": "virgil",
+  "purpose": "Virgil is a chief of staff for your context: it captures what matters where it happens, keeps it private in spheres, and briefs every person and agent who needs it. This glossary is the one place each term is defined; code, tests, docs and copy use these words.",
+  "sections": [
+    { "id": "product", "title": "Product" },
+    { "id": "surfaces", "title": "Surfaces" },
+    { "id": "architecture", "title": "Architecture" },
+    { "id": "agents", "title": "Agents" },
+    { "id": "development", "title": "Development" }
+  ],
+  "terms": [
+    {
+      "id": "term.sphere",
+      "name": "Sphere",
+      "section": "product",
+      "definition": "A bounded world of context (a client, the house move, a side project) with its own memory, view and rules. The core primitive and its settled public name.",
+      "code": ["context_lens", "context_lens_membership", "sphere_grant"],
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.capture",
+      "name": "Capture",
+      "section": "product",
+      "definition": "Context taken in the place it happens (a page in the browser, a message in Slack, a decision in a meeting), with its source attached.",
+      "status": "settled"
+    },
+    {
+      "id": "term.brief",
+      "name": "Brief",
+      "section": "product",
+      "definition": "The curated context of a sphere handed to a person or an agent, scoped and permissioned.",
+      "code": ["virgil-brief"],
+      "status": "settled"
+    },
+    {
+      "id": "term.group",
+      "name": "Group",
+      "section": "product",
+      "definition": "The people who share one Virgil: its members, channels, tasks and the spheres shared with it.",
+      "avoid": [
+        {
+          "word": "workspace",
+          "except": [
+            "Linear workspace",
+            "Slack workspace",
+            "Discord workspace",
+            "Notion workspace",
+            "Google Workspace",
+            "GitHub workspace",
+            "Figma workspace",
+            "bd workspace"
+          ]
+        }
+      ],
+      "code": ["group", "workspace", "beads_workspace"],
+      "refs": {
+        "rules": ["rule.glossary-terms"],
+        "principles": ["principle.mattpocock.shared-domain-language"]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.lesson",
+      "name": "Lesson",
+      "section": "product",
+      "definition": "A dated observation an agent records about the codebase, anchored to the source it describes; not an instruction until verified against that source.",
+      "code": ["lesson", "personal_lesson"],
+      "refs": { "docs": ["docs/runbooks/agent-memory.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.memory",
+      "name": "Memory",
+      "section": "product",
+      "definition": "A durable claim Recall holds, with the evidence it stands on; it reaches only a caller who can see every one of its sources.",
+      "code": ["memory"],
+      "refs": { "docs": ["docs/runbooks/recall.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.task",
+      "name": "Task",
+      "section": "product",
+      "definition": "A unit of tracked work in Virgil's own task list.",
+      "avoid": [{ "word": "bead", "except": ["import-beads"] }],
+      "code": ["task"],
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.door",
+      "name": "Door",
+      "section": "architecture",
+      "definition": "The `virgil-serve` service that answers a request; it never streams.",
+      "code": ["virgil-serve"],
+      "refs": {
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "status": "settled"
+    },
+    {
+      "id": "term.edge",
+      "name": "Edge",
+      "section": "architecture",
+      "definition": "`apps/realtime-edge`, the only live transport.",
+      "code": ["@naos-intelligence/virgil-realtime-edge"],
+      "refs": {
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "status": "settled"
+    },
+    {
+      "id": "term.worker",
+      "name": "Worker",
+      "section": "architecture",
+      "definition": "The `virgil-serve` service that runs the outbox, events and lifecycle work.",
+      "code": ["virgil-serve"],
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.delivery",
+      "name": "Delivery",
+      "section": "architecture",
+      "definition": "The `virgil-serve` service that sends through providers.",
+      "code": ["virgil-serve"],
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.daemon",
+      "name": "Daemon",
+      "section": "architecture",
+      "definition": "`virgil-desktop`, the always-on process where product logic lives; the Electron app is its thin front end.",
+      "code": ["virgil-desktop"],
+      "refs": {
+        "docs": [
+          "docs/runbooks/shipping-architecture.md",
+          "docs/runbooks/product-invariants.md"
+        ]
+      },
+      "status": "settled"
+    },
+    {
+      "id": "term.records",
+      "name": "Records",
+      "section": "architecture",
+      "definition": "The typed contract for the group's data, generated from one source in `packages/virgil-schema` into Rust, JSON Schema and TypeScript.",
+      "code": ["@naos-intelligence/virgil-schema"],
+      "refs": {
+        "rules": ["rule.records-generated-matches-schema"],
+        "docs": ["packages/virgil-schema/CONTRACT.md"]
+      },
+      "status": "settled"
+    },
+    {
+      "id": "term.recall",
+      "name": "Recall",
+      "section": "architecture",
+      "definition": "Virgil's memory, run in the daemon and reached through the map, find, fetch, related and prime verbs and the personal overview.",
+      "code": ["virgil-recall-service"],
+      "refs": { "docs": ["docs/runbooks/recall.md"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.cato",
+      "name": "Cato",
+      "section": "agents",
+      "definition": "The merge agent: it readies a draft pull request, verifies it merged onto main and moves main to that commit.",
+      "code": ["@naos-intelligence/virgil-cato"],
+      "refs": { "docs": ["tools/cato/README.md"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.messo",
+      "name": "Messo",
+      "section": "agents",
+      "definition": "The maintenance agent: it works the findings of the rulebook's sweep and reported bugs into draft pull requests, and never merges.",
+      "code": ["@naos-intelligence/virgil-messo"],
+      "refs": { "docs": ["docs/runbooks/messo.md"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.rulebook",
+      "name": "Rulebook",
+      "section": "agents",
+      "definition": "`whetstone/rulebook.json`: the mission, the principles and the rules Virgil's gates and Messo's sweep enforce.",
+      "refs": { "docs": ["whetstone/rulebook.json"] },
+      "status": "settled"
+    },
+    {
+      "id": "term.session",
+      "name": "Session",
+      "section": "agents",
+      "definition": "One ACP job an AI provider runs for Virgil. A companion session is projected into records as a thread of its companion channel.",
+      "code": ["session"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/companion.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.member",
+      "name": "Member",
+      "section": "product",
+      "definition": "A principal who belongs to a group, holding a role on the group's role ladder.",
+      "code": ["membership", "channel_member"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.principal",
+      "name": "Principal",
+      "section": "product",
+      "definition": "An actor a group knows: a person, a persona members speak as, an agent such as a bot, or a service.",
+      "code": ["principal", "principal_status"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.persona",
+      "name": "Persona",
+      "section": "product",
+      "definition": "A principal that is a name members or Virgil speak as rather than an account of its own; Virgil answers as one persona per sphere.",
+      "refs": { "docs": ["docs/runbooks/companion.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.companion",
+      "name": "Companion",
+      "section": "product",
+      "definition": "An agent that takes part in a conversation as a participant. Virgil's own companion answers as its persona in a companion channel or a group room.",
+      "code": ["virgil-companion-service"],
+      "refs": { "docs": ["docs/runbooks/companion.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.conversation",
+      "name": "Conversation",
+      "section": "product",
+      "definition": "The messages a channel or a thread holds, read in order; a conversation with Virgil is ordinary `message` records like any other.",
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.profile",
+      "name": "Profile",
+      "section": "product",
+      "definition": "The card other members see about a person: their picture, name, role, local time and what they wrote about themselves. It opens as the Profile rail beside a conversation and is set under Settings → Account → Personal info.",
+      "refs": { "docs": ["packages/ui/src/chat/convos/ProfileRail.tsx"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.personal-overview",
+      "name": "Personal overview",
+      "section": "product",
+      "definition": "What Virgil knows about a person in a group: their stated preferences, the responsibilities assigned to them, and inferences labelled as such. They read it, correct a line or pin one with `virgil overview`.",
+      "code": ["profile_assertion"],
+      "refs": { "docs": ["docs/runbooks/recall.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.online-status",
+      "name": "Online status",
+      "section": "product",
+      "definition": "Whether a member shows as online: a heartbeat heard from them within the last 70 seconds, which their desktop daemon sends each of their groups every 30 seconds, reads as online unless they chose Away.",
+      "refs": { "docs": ["docs/runbooks/work-surfaces.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.goal",
+      "name": "Goal",
+      "section": "product",
+      "definition": "The objective a body of work serves, written only by a person; one goal can span spheres and repositories, and an epic names the goal it is for.",
+      "code": ["goal"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.epic",
+      "name": "Epic",
+      "section": "product",
+      "definition": "A body of work handed over whole: a native Virgil epic, a bd epic or a Linear project carried in from its tracker. Epics hold tasks and nest inside other epics.",
+      "code": ["epic"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/linear-tasks.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.output",
+      "name": "Output",
+      "section": "product",
+      "definition": "What a body of work actually produced (a commit, a pull request, an email, a document, a post or a release), linked to the epic and the task it came out of.",
+      "code": ["output"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.question",
+      "name": "Question",
+      "section": "product",
+      "definition": "Something Virgil needs a person to answer. One addressed to a member puts a needs-you item in their inbox until it is answered or dismissed.",
+      "code": ["question"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/agent-inbox.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.inbox",
+      "name": "Inbox",
+      "section": "product",
+      "definition": "Each member's list of what they are told about: a mention or direct message, a reply in a thread they follow, a task handed to them or a question put to them. Its read state is shared across their devices.",
+      "code": ["notification", "notification_state", "notification_preference"],
+      "refs": {
+        "docs": [
+          "docs/runbooks/notification-inbox.md",
+          "docs/runbooks/agent-inbox.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.approval",
+      "name": "Approval",
+      "section": "product",
+      "definition": "A person's decision to let one effect happen, such as sending mail, scoped and expiring so that no agent holds a blanket yes.",
+      "code": ["approval"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.prep",
+      "name": "Prep",
+      "section": "product",
+      "definition": "The briefing Virgil writes before a meeting in three sections (background, talking points and actions) from the event and what Recall knows of its attendees.",
+      "code": ["virgil-prep"],
+      "refs": {
+        "docs": ["crates/virgil-prep/src/prep.rs", "docs/runbooks/recall.md"]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.summary",
+      "name": "Summary",
+      "section": "product",
+      "definition": "What Virgil writes into a huddle's channel after it ends: a summary members may edit and the actions it proposes. One participant's daemon is elected to write it.",
+      "avoid": [{ "word": "recap" }],
+      "code": [
+        "huddle_recap_run",
+        "huddle_recap_edit",
+        "huddle_recap_lock",
+        "huddle_proposal"
+      ],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/huddles.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.branding",
+      "name": "Branding",
+      "section": "product",
+      "definition": "A group's visual identity (its colours, neutral palette, radius, font and logo), set by an admin, that the group's views and pages render with unless a page pins its own.",
+      "refs": {
+        "docs": [
+          "docs/runbooks/page-templates.md",
+          "docs/runbooks/html-views.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.convos",
+      "name": "Convos",
+      "section": "surfaces",
+      "definition": "The app's space for talking: channels, direct messages and companion threads.",
+      "refs": { "docs": ["apps/virgil-app/src/renderer/spaces.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.channel",
+      "name": "Channel",
+      "section": "surfaces",
+      "definition": "A place records are read in, of one kind: a chat channel, a direct message, a feed, a companion room, the Virgil DM, a docket or a saved view. A sphere's own store and a person's synced recall are channels too, never shown in the rail.",
+      "code": ["channel", "channel_state"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.thread",
+      "name": "Thread",
+      "section": "surfaces",
+      "definition": "A root record and the replies that name it as their parent. A reply to a message, a comment on a task and a companion session are all threads.",
+      "code": ["thread_state", "thread_summary"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.view",
+      "name": "View",
+      "section": "surfaces",
+      "definition": "A saved query with a rendering: one HTML document, run in a sandboxed frame over the query's rows, shown as a channel's tab or on its own in the rail.",
+      "code": [
+        "view",
+        "view_configuration",
+        "view_state",
+        "virgil-views-core",
+        "virgil-views-service",
+        "@naos-intelligence/virgil-views"
+      ],
+      "refs": { "docs": ["docs/runbooks/html-views.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.page",
+      "name": "Page",
+      "section": "surfaces",
+      "definition": "A view of kind `page`: an editable document with its own revisions and comments, made from a template.",
+      "code": ["page_comment", "page_template", "page_template_version"],
+      "refs": {
+        "docs": [
+          "docs/runbooks/documents-catalog.md",
+          "docs/runbooks/page-templates.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.document",
+      "name": "Document",
+      "section": "surfaces",
+      "definition": "Anything the Documents space lists: a live document, a page, a clip, link or file handed over, a note or a transcript, and saved messages when asked for.",
+      "refs": {
+        "docs": [
+          "docs/runbooks/documents-catalog.md",
+          "apps/virgil-app/src/renderer/spaces.ts"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.live-document",
+      "name": "Live document",
+      "section": "surfaces",
+      "definition": "A document authored in Virgil that members edit together, each revision sealed by the device that wrote it; a page's body is one.",
+      "code": ["doc_document", "doc_snapshot", "doc_checkpoint", "virgil-doc"],
+      "refs": { "docs": ["docs/runbooks/documents-catalog.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.letterhead",
+      "name": "Letterhead",
+      "section": "surfaces",
+      "definition": "The trusted part every view document carries ahead of the view's own region: Virgil's tokens, reset, primitives and component runtime.",
+      "refs": { "docs": ["docs/runbooks/html-views.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.card",
+      "name": "Card",
+      "section": "surfaces",
+      "definition": "A bounded surface that presents one thing, drawn with the `Card` primitive.",
+      "refs": { "docs": ["DESIGN.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.huddle",
+      "name": "Huddle",
+      "section": "surfaces",
+      "definition": "A live audio and video room in a channel, shown in its timeline as one card that keeps the transcript, summary and actions after it ends.",
+      "code": ["huddle_attendee", "huddle_segment", "huddle_proposal"],
+      "refs": { "docs": ["docs/runbooks/huddles.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.call",
+      "name": "Call",
+      "section": "surfaces",
+      "definition": "A huddle whose other participant is Virgil.",
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.hud",
+      "name": "HUD",
+      "section": "surfaces",
+      "definition": "The Electron app's always-on-top window over the desktop: the flame, its pill and the menu-bar item, present from login and outliving every product window.",
+      "refs": {
+        "docs": [
+          "docs/runbooks/shipping-architecture.md",
+          "apps/virgil-app/README.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.overlay",
+      "name": "Overlay",
+      "section": "surfaces",
+      "definition": "Virgil's own fields on a task or epic carried from a tracker, which a person edits in Virgil and which never leave it.",
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.clipper",
+      "name": "Clipper",
+      "section": "surfaces",
+      "definition": "The browser extension that clips a page or a selection into a sphere's recall, talking only to the daemon on loopback.",
+      "code": ["@naos-intelligence/virgil-clipper", "virgil-clipper-service"],
+      "refs": { "docs": ["docs/runbooks/web-clipper.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.space",
+      "name": "Space",
+      "section": "surfaces",
+      "definition": "One of the app's top-level places: Convos, Activity, Meetings and Documents in the far-left rail, and Settings from the account menu.",
+      "refs": { "docs": ["apps/virgil-app/src/renderer/spaces.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.activity",
+      "name": "Activity",
+      "section": "surfaces",
+      "definition": "What happened to you, newest first: each thread you follow with its newest reply and unread count, and each reaction to your messages. It is a space in the app and a tab of the HUD's pill, where inbox items join it.",
+      "refs": {
+        "docs": [
+          "apps/virgil-app/src/renderer/spaces/ActivitySpace.tsx",
+          "docs/runbooks/notification-inbox.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.home",
+      "name": "Home",
+      "section": "surfaces",
+      "definition": "The app's space, still behind a flag, that shows a person's feed with the views they keep on their dashboard above it.",
+      "code": ["dashboard"],
+      "refs": {
+        "docs": [
+          "apps/virgil-app/src/renderer/spaces.ts",
+          "packages/virgil-schema/src/collections.ts"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.feed",
+      "name": "Feed",
+      "section": "surfaces",
+      "definition": "What happened in the sources a person follows, such as GitHub and Linear, reflected into Virgil and ranked with a reason; the Home space, still behind a flag, shows it.",
+      "code": ["feed_item", "feed_signal"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "apps/virgil-app/src/renderer/spaces.ts"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.docket",
+      "name": "Docket",
+      "section": "surfaces",
+      "definition": "A channel that holds the comments on tasks: the group's Tasks docket, and one per connected Linear or bd workspace. Each comment is a message parented to its task.",
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/work-surfaces.md",
+          "docs/runbooks/linear-tasks.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.comment",
+      "name": "Comment",
+      "section": "surfaces",
+      "definition": "A reply anchored to a task or a page. On a task it is a message in a docket parented to the task; on a page it is a thread reply pinned to a quoted passage of one revision, open until addressed or resolved.",
+      "code": ["page_comment"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/src/collections.ts",
+          "docs/runbooks/work-surfaces.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.attachment",
+      "name": "Attachment",
+      "section": "surfaces",
+      "definition": "A file a message carries or a task holds, never both; a task's file may also be shown inline in its description.",
+      "code": ["attachment"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.block",
+      "name": "Block",
+      "section": "surfaces",
+      "definition": "One unit of a message's or a live document's body (a paragraph, heading, list, quote, code, table or embedded view), made of runs of text, links, mentions and emoji.",
+      "code": ["@naos-intelligence/virgil-lexical-blocks"],
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/CONTRACT.md",
+          "packages/virgil-lexical-blocks/src/blocks.ts"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.template",
+      "name": "Template",
+      "section": "surfaces",
+      "definition": "Reusable page source in the group's library: a layout, content slots, authoring instructions, resources and how it takes the group's branding. A new page is made from one and keeps its own copy.",
+      "code": ["page_template", "page_template_version"],
+      "refs": { "docs": ["docs/runbooks/page-templates.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.flame",
+      "name": "Flame",
+      "section": "surfaces",
+      "definition": "Virgil's mark and its default presence, whose colour says its state: blue while Virgil is present, gold while it works, green when something landed and orange when somebody needs you.",
+      "code": ["@naos-intelligence/virgil-flame"],
+      "refs": { "docs": ["DESIGN.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.presence",
+      "name": "Presence",
+      "section": "surfaces",
+      "definition": "The character Virgil appears as in the HUD and the app: the flame or an authored animated avatar chosen at setup, which plays a clip for what Virgil is doing.",
+      "code": ["@naos-intelligence/virgil-presence-runtime"],
+      "refs": { "docs": ["packages/virgil-presences/README.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.pill",
+      "name": "Pill",
+      "section": "surfaces",
+      "definition": "The HUD's panel beside the flame: a fixed command bar over one board, which shows a meeting being recorded or an opened prep, and otherwise the chosen tab of Today, Tasks, Virgil and Activity.",
+      "refs": { "docs": ["apps/virgil-app/src/renderer/hud/pill.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.authority",
+      "name": "Authority",
+      "section": "architecture",
+      "definition": "The authority that holds a container's records: it accepts each write, gives it its place in the container's one order and stamps its time.",
+      "refs": { "docs": ["packages/virgil-schema/CONTRACT.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.cell",
+      "name": "Cell",
+      "section": "architecture",
+      "definition": "One deployment of the door, worker and delivery services with its own signing identity, serving the authorities placed on it.",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.portal",
+      "name": "Portal",
+      "section": "architecture",
+      "definition": "`apps/portal`, the account web service: it signs people and their devices in and knows which groups each account belongs to.",
+      "code": ["@naos-intelligence/virgil-portal"],
+      "refs": {
+        "docs": ["docs/runbooks/sign-in.md", "docs/runbooks/group-binding.md"]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.device",
+      "name": "Device",
+      "section": "architecture",
+      "definition": "A signing identity bound to a principal: the key one machine or agent signs its writes with, which the door verifies.",
+      "code": ["device", "device_key"],
+      "refs": { "docs": ["docs/runbooks/sign-in.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.replica",
+      "name": "Replica",
+      "section": "architecture",
+      "definition": "A device's local copy of the records it may read, kept current through the door and the edge, which the daemon answers reads from.",
+      "code": ["virgil-replica-sqlite"],
+      "refs": { "docs": ["docs/runbooks/records-read-consistency.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.snapshot",
+      "name": "Snapshot",
+      "section": "architecture",
+      "definition": "A signed copy of the current records a device may read in a container at one point in its order, which refills a replica without replaying history.",
+      "refs": { "docs": ["docs/runbooks/records-read-consistency.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.outbox",
+      "name": "Outbox",
+      "section": "architecture",
+      "definition": "The committed operations the door writes, one per log entry in the same transaction, for the worker to publish to the edge.",
+      "refs": {
+        "docs": [
+          "docs/runbooks/storage-v2-postgres.md",
+          "docs/runbooks/shipping-architecture.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.bundle",
+      "name": "Bundle",
+      "section": "architecture",
+      "definition": "The packaged desktop application a release ships, which the daemon verifies, swaps in whole and keeps one of for rollback.",
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.acp",
+      "name": "ACP",
+      "section": "architecture",
+      "definition": "The Agent Client Protocol, which an AI provider speaks on its standard input and output; every generative session the daemon opens runs over it.",
+      "code": ["virgil-acp", "virgil-agent-runtime"],
+      "refs": { "docs": ["docs/runbooks/ai-providers.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.mcp",
+      "name": "MCP",
+      "section": "architecture",
+      "definition": "The Model Context Protocol, through which Virgil hands its own tools to each ACP session as one server on loopback HTTP.",
+      "refs": { "docs": ["docs/runbooks/ai-providers.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.witness",
+      "name": "Witness",
+      "section": "architecture",
+      "definition": "The native inference runtime the daemon loads for speech recognition and Recall embeddings.",
+      "code": ["virgil-meeting-witness"],
+      "refs": {
+        "docs": [
+          "docs/runbooks/llm-host-supervision.md",
+          "docs/runbooks/shipping-architecture.md"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.container",
+      "name": "Container",
+      "section": "architecture",
+      "definition": "The unit records are stored, ordered and shared in, served by one authority. A group's root container holds its public channels; each direct message, private channel and sphere gets its own, and each person has a private one.",
+      "refs": {
+        "docs": [
+          "packages/virgil-schema/CONTRACT.md",
+          "packages/virgil-schema/src/collections.ts"
+        ]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.command",
+      "name": "Command",
+      "section": "architecture",
+      "definition": "A registered action with a dotted id such as `message.send`. Buttons, shortcuts, the palette, Virgil and the MCP tools change anything only by invoking one.",
+      "code": ["command"],
+      "refs": { "docs": ["packages/virgil-schema/src/collections.ts"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.ai-provider",
+      "name": "AI provider",
+      "section": "architecture",
+      "definition": "A program that speaks ACP and that Virgil's own work runs on, such as the bundled Codex or Claude, chosen and signed in under Settings. No model key passes through Virgil.",
+      "avoid": [{ "word": "LLM profile" }],
+      "code": ["virgil-agent-runtime"],
+      "refs": { "docs": ["docs/runbooks/ai-providers.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.party",
+      "name": "Party",
+      "section": "development",
+      "definition": "An isolated local stack of Virgil's services with one app per test person, signed into a shared group, that `task app:dev` starts.",
+      "refs": { "docs": ["docs/runbooks/dev-experience.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.lane",
+      "name": "Lane",
+      "section": "development",
+      "definition": "One CI job, selected by the paths a change touches, that runs a set of checks on its own runner and that `ci-gate` waits on.",
+      "refs": { "docs": ["docs/runbooks/ci-cost.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.gate",
+      "name": "Gate",
+      "section": "development",
+      "definition": "A check that must pass before work moves on, such as `ci-gate` before a pull request lands. Its green proves only what passed under the conditions it ran with.",
+      "refs": { "docs": ["docs/runbooks/gate-design.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.skill",
+      "name": "Skill",
+      "section": "development",
+      "definition": "A packaged set of instructions, a `SKILL.md`, that teaches an agent one kind of task.",
+      "refs": { "docs": ["docs/runbooks/page-templates.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.atlas",
+      "name": "Atlas",
+      "section": "development",
+      "definition": "The typed model of a repository's parts, how they connect and the views drawn from it, kept in `.virgil/atlas.json` beside the glossary.",
+      "refs": { "docs": ["docs/runbooks/atlas.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.design-token",
+      "name": "Design token",
+      "section": "development",
+      "definition": "A named design value (a colour, font, radius, shadow, duration or spring) from `packages/virgil-tokens`, the one place a Virgil surface takes its values from.",
+      "code": ["@naos-intelligence/virgil-tokens"],
+      "refs": { "docs": ["docs/design/tokens.md", "DESIGN.md"] },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.whetstone",
+      "name": "Whetstone",
+      "section": "development",
+      "definition": "The rule checker that runs the rulebook against a pull request's change or, in sweep mode, the whole tree, and reports each finding under its rule. An outside tool Virgil pins by version.",
+      "refs": {
+        "docs": ["docs/runbooks/messo.md", ".github/workflows/ci.yml"]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    },
+    {
+      "id": "term.prtl",
+      "name": "PRTL",
+      "section": "development",
+      "definition": "The outside tool that runs coding agents on the owner's machines, its nodes, in isolated worktrees and turns their work into verified commits. Virgil tasks say what to do; PRTL runs it.",
+      "refs": {
+        "docs": ["docs/runbooks/planning.md", ".agents/skills/prtl/SKILL.md"]
+      },
+      "status": "settled",
+      "decided": { "on": "2026-10-22" }
+    }
+  ]
+}

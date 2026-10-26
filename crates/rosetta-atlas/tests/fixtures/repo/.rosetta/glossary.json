@@ -1,0 +1,57 @@
+{
+  "schema": "rosetta.glossary/v1",
+  "context": "fixture",
+  "purpose": "A small repo the atlas tests build from.",
+  "sections": [
+    { "id": "product", "title": "Product" },
+    { "id": "architecture", "title": "Architecture" }
+  ],
+  "terms": [
+    {
+      "id": "term.group",
+      "name": "Group",
+      "section": "product",
+      "definition": "The people who share one fixture.",
+      "avoid": [
+        {
+          "word": "workspace",
+          "except": ["Slack workspace", "Google Workspace"]
+        },
+        { "word": "team" }
+      ],
+      "code": ["channel", "fixture-repo"],
+      "status": "settled"
+    },
+    {
+      "id": "term.door",
+      "name": "Door",
+      "section": "architecture",
+      "definition": "The service that answers a request; it never streams.",
+      "code": ["fixture-door"],
+      "refs": {
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/shipping.md"]
+      },
+      "status": "settled"
+    },
+    {
+      "id": "term.store",
+      "name": "Store",
+      "section": "architecture",
+      "definition": "Where the records are kept.",
+      "code": ["fixture-core", "message"],
+      "status": "settled"
+    },
+    {
+      "id": "term.edge",
+      "name": "Edge",
+      "section": "architecture",
+      "definition": "The only live transport.",
+      "code": ["@fixture/edge"],
+      "status": "proposed",
+      "decided": { "on": "2026-10-21", "page": "virgil://page/fixture" },
+      "epic": "FIX-open1"
+    }
+  ]
+}

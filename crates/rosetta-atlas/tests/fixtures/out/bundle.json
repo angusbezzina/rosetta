@@ -1,0 +1,827 @@
+{
+  "schema": "rosetta.atlas-bundle/v1",
+  "project": { "name": "fixture", "repo": "example/fixture" },
+  "views": [
+    {
+      "id": "overview",
+      "kind": "overview",
+      "title": "Overview",
+      "description": "What fixture is made of and how the parts talk.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Web app\"]\n    click n1 \"atlas:web\"\n  end\n  subgraph g2[\"Cloud\"]\n    n2[\"Door\"]\n    click n2 \"atlas:door\"\n    n3[(\"Store\")]\n    click n3 \"atlas:store\"\n    n5[(\"Cells\")]\n    click n5 \"atlas:cells\"\n  end\n  subgraph g3[\"Edge\"]\n    n4[\"Edge\"]\n    click n4 \"atlas:edge\"\n  end\n  n1 -->|\"calls · request/answer\"| n2\n  n2 --> n3\n  n3 --> n5\n  n3 -->|\"publishes · outbox\"| n4\n  n4 -->|\"delivers · live\"| n1\n  class n2,n4 fam-service\n  class n3,n5 fam-store\n  class n1 fam-surface\n  class n2,n4 kind-service\n  class n3,n5 kind-store\n  class n1 kind-surface\n"
+      }
+    },
+    {
+      "id": "infra",
+      "kind": "infra",
+      "title": "Infra",
+      "description": "The cloud resources the repository declares and what uses them.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Cloud\"]\n    n1[\"Door\"]\n    click n1 \"atlas:door\"\n  end\n  subgraph g2[\"compute/door\"]\n    n2[\"cloudrunv2.Service · door\"]\n    click n2 \"atlas:infra-src-compute-door-cloudrunv2-service\"\n  end\n  subgraph g3[\"database\"]\n    n3[(\"sql.Database · database\")]\n    click n3 \"atlas:infra-src-database-sql-database\"\n    n4[(\"sql.DatabaseInstance · database\")]\n    click n4 \"atlas:infra-src-database-sql-database-instance\"\n  end\n  n2 -->|\"deploys · runs\"| n1\n  class n1,n2 fam-service\n  class n3,n4 fam-store\n  class n2,n3,n4 kind-resource\n  class n1 kind-service\n"
+      }
+    },
+    {
+      "id": "records",
+      "kind": "records",
+      "title": "Records",
+      "description": "The record collections by area, and the refs between them.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  n1[\"Messages and channels\"]\n  click n1 \"atlas:records-area%3Aconversation\"\n  n2[\"People\"]\n  click n2 \"atlas:records-area%3Apeople\"\n  n1 -->|\"1 ref\"| n2\n  class n1,n2 fam-store\n  class n1,n2 kind-area\n",
+        "records-area:conversation": "flowchart LR\n  n1[\"channel\"]\n  click n1 \"atlas:records%3Achannel\"\n  n2[\"message\"]\n  click n2 \"atlas:records%3Amessage\"\n  n3[\"People\"]\n  click n3 \"atlas:records-area%3Apeople\"\n  n2 -->|\"channel\"| n1\n  n2 -->|\"decision.decided_by\"| n3\n  class n1,n2,n3 fam-store\n  class n3 kind-area\n  class n1,n2 kind-collection\n  class n1,n2 scope-container\n",
+        "records-area:people": "flowchart LR\n  n1[\"principal\"]\n  click n1 \"atlas:records%3Aprincipal\"\n  n2[\"Messages and channels\"]\n  click n2 \"atlas:records-area%3Aconversation\"\n  n2 -->|\"decision.decided_by\"| n1\n  class n1,n2 fam-store\n  class n2 kind-area\n  class n1 kind-collection\n  class n1 scope-private\n"
+      }
+    },
+    {
+      "id": "data",
+      "kind": "data",
+      "title": "Data",
+      "description": "Where state lives and how it moves: reads, writes, publishes and deliveries.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Web app\"]\n    click n1 \"atlas:web\"\n  end\n  subgraph g2[\"Cloud\"]\n    n2[\"Door\"]\n    click n2 \"atlas:door\"\n    n3[(\"Store\")]\n    click n3 \"atlas:store\"\n    n5[(\"Cells\")]\n    click n5 \"atlas:cells\"\n  end\n  subgraph g3[\"Edge\"]\n    n4[\"Edge\"]\n    click n4 \"atlas:edge\"\n  end\n  n2 -->|\"writes\"| n3\n  n3 -->|\"writes\"| n5\n  n3 -->|\"publishes · outbox\"| n4\n  n4 -->|\"delivers · live\"| n1\n  class n2,n4 fam-service\n  class n3,n5 fam-store\n  class n1 fam-surface\n  class n2,n4 kind-service\n  class n3,n5 kind-store\n  class n1 kind-surface\n"
+      }
+    },
+    {
+      "id": "send",
+      "kind": "flow",
+      "title": "A message from send to screen",
+      "description": "One message, typed to seen.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Web app\"]\n    click n1 \"atlas:web\"\n    n6[\"@fixture/ui\"]\n    click n6 \"atlas:packages-ui\"\n  end\n  subgraph g2[\"Cloud\"]\n    n2[\"Door\"]\n    click n2 \"atlas:door\"\n    n3[\"Store\"]\n    click n3 \"atlas:store\"\n    n4[\"Cells\"]\n    click n4 \"atlas:cells\"\n  end\n  subgraph g3[\"Edge\"]\n    n5[\"Edge\"]\n    click n5 \"atlas:edge\"\n  end\n  n1 -->|\"1. the person sends\"| n2\n  n2 -->|\"2. answers #quot;accepted#quot;\"| n2\n  n2 -->|\"3. checks the policy\"| n3\n  n3 -->|\"4. commits the row\"| n4\n  n4 -->|\"5. keeps it\"| n5\n  n5 -->|\"6. carries it live\"| n6\n  n6 -->|\"7. draws it\"| n1\n  class n2,n5,n6 fam-service\n  class n3,n4 fam-store\n  class n1 fam-surface\n  class n6 kind-package\n  class n2,n5 kind-service\n  class n3,n4 kind-store\n  class n1 kind-surface\n"
+      }
+    },
+    {
+      "id": "write-path",
+      "kind": "custom",
+      "title": "The write path",
+      "description": "What a write passes through.",
+      "default_root": "",
+      "sources": {
+        "": "flowchart LR\n  subgraph g1[\"Device\"]\n    n1[\"Web app\"]\n    click n1 \"atlas:web\"\n    n5[\"@fixture/ui\"]\n    click n5 \"atlas:packages-ui\"\n  end\n  subgraph g2[\"Cloud\"]\n    n2[\"Door\"]\n    click n2 \"atlas:door\"\n    n3[(\"Store\")]\n    click n3 \"atlas:store\"\n    n4[(\"Cells\")]\n    click n4 \"atlas:cells\"\n  end\n  n1 -->|\"calls · request/answer\"| n2\n  n2 -->|\"writes\"| n3\n  n3 -->|\"writes\"| n4\n  class n2,n5 fam-service\n  class n3,n4 fam-store\n  class n1 fam-surface\n  class n5 kind-package\n  class n2 kind-service\n  class n3,n4 kind-store\n  class n1 kind-surface\n"
+      }
+    },
+    {
+      "id": "connections",
+      "kind": "connections",
+      "title": "Connections",
+      "description": "What a part uses and what uses it.",
+      "default_root": "",
+      "sources": {
+        "apps-web": "flowchart LR\n  n1[\"@fixture/web\"]\n  click n1 \"atlas:apps-web\"\n  n2[\"@fixture/ui\"]\n  click n2 \"atlas:packages-ui\"\n  n1 -->|\"depends on\"| n2\n  class n2 fam-service\n  class n1 fam-surface\n  class n1 is-focus\n  class n1 kind-app\n  class n2 kind-package\n",
+        "cells": "flowchart LR\n  n1[\"Cells\"]\n  click n1 \"atlas:cells\"\n  n2[\"Store\"]\n  click n2 \"atlas:store\"\n  n2 -->|\"writes\"| n1\n  class n1,n2 fam-store\n  class n1 is-focus\n  class n1,n2 kind-store\n",
+        "crates-core": "flowchart LR\n  n1[\"fixture-core\"]\n  click n1 \"atlas:crates-core\"\n  n2[\"fixture-door\"]\n  click n2 \"atlas:crates-door\"\n  n2 -->|\"depends on\"| n1\n  class n1,n2 fam-service\n  class n1 is-focus\n  class n1,n2 kind-crate\n",
+        "crates-door": "flowchart LR\n  n1[\"fixture-door\"]\n  click n1 \"atlas:crates-door\"\n  n2[\"fixture-core\"]\n  click n2 \"atlas:crates-core\"\n  n1 -->|\"depends on\"| n2\n  class n1,n2 fam-service\n  class n1 is-focus\n  class n1,n2 kind-crate\n",
+        "door": "flowchart LR\n  n1[\"Door\"]\n  click n1 \"atlas:door\"\n  n2[\"Web app\"]\n  click n2 \"atlas:web\"\n  n3[\"cloudrunv2.Service · door\"]\n  click n3 \"atlas:infra-src-compute-door-cloudrunv2-service\"\n  n4[\"Store\"]\n  click n4 \"atlas:store\"\n  n2 -->|\"calls · request/answer\"| n1\n  n3 -->|\"deploys · runs\"| n1\n  n1 -->|\"writes\"| n4\n  class n1,n3 fam-service\n  class n4 fam-store\n  class n2 fam-surface\n  class n1 is-focus\n  class n3 kind-resource\n  class n1 kind-service\n  class n4 kind-store\n  class n2 kind-surface\n",
+        "edge": "flowchart LR\n  n1[\"Edge\"]\n  click n1 \"atlas:edge\"\n  n2[\"Store\"]\n  click n2 \"atlas:store\"\n  n3[\"Web app\"]\n  click n3 \"atlas:web\"\n  n2 -->|\"publishes · outbox\"| n1\n  n1 -->|\"delivers · live\"| n3\n  class n1 fam-service\n  class n2 fam-store\n  class n3 fam-surface\n  class n1 is-focus\n  class n1 kind-service\n  class n2 kind-store\n  class n3 kind-surface\n",
+        "infra-src-compute-door-cloudrunv2-service": "flowchart LR\n  n1[\"cloudrunv2.Service · door\"]\n  click n1 \"atlas:infra-src-compute-door-cloudrunv2-service\"\n  n2[\"Door\"]\n  click n2 \"atlas:door\"\n  n1 -->|\"deploys · runs\"| n2\n  class n1,n2 fam-service\n  class n1 is-focus\n  class n1 kind-resource\n  class n2 kind-service\n",
+        "packages-ui": "flowchart LR\n  n1[\"@fixture/ui\"]\n  click n1 \"atlas:packages-ui\"\n  n2[\"@fixture/web\"]\n  click n2 \"atlas:apps-web\"\n  n2 -->|\"depends on\"| n1\n  class n1 fam-service\n  class n2 fam-surface\n  class n1 is-focus\n  class n2 kind-app\n  class n1 kind-package\n",
+        "records:channel": "flowchart LR\n  n1[\"channel\"]\n  click n1 \"atlas:records%3Achannel\"\n  n2[\"message\"]\n  click n2 \"atlas:records%3Amessage\"\n  n2 -->|\"refs · channel\"| n1\n  class n1,n2 fam-store\n  class n1 is-focus\n  class n1,n2 kind-collection\n",
+        "records:message": "flowchart LR\n  n1[\"message\"]\n  click n1 \"atlas:records%3Amessage\"\n  n2[\"channel\"]\n  click n2 \"atlas:records%3Achannel\"\n  n3[\"principal\"]\n  click n3 \"atlas:records%3Aprincipal\"\n  n1 -->|\"refs · channel\"| n2\n  n1 -->|\"refs · decision.decided_by\"| n3\n  class n1,n2,n3 fam-store\n  class n1 is-focus\n  class n1,n2,n3 kind-collection\n",
+        "records:principal": "flowchart LR\n  n1[\"principal\"]\n  click n1 \"atlas:records%3Aprincipal\"\n  n2[\"message\"]\n  click n2 \"atlas:records%3Amessage\"\n  n2 -->|\"refs · decision.decided_by\"| n1\n  class n1,n2 fam-store\n  class n1 is-focus\n  class n1,n2 kind-collection\n",
+        "store": "flowchart LR\n  n1[\"Store\"]\n  click n1 \"atlas:store\"\n  n2[\"Door\"]\n  click n2 \"atlas:door\"\n  n3[\"Edge\"]\n  click n3 \"atlas:edge\"\n  n4[\"Cells\"]\n  click n4 \"atlas:cells\"\n  n2 -->|\"writes\"| n1\n  n1 -->|\"publishes · outbox\"| n3\n  n1 -->|\"writes\"| n4\n  class n2,n3 fam-service\n  class n1,n4 fam-store\n  class n1 is-focus\n  class n2,n3 kind-service\n  class n1,n4 kind-store\n",
+        "web": "flowchart LR\n  n1[\"Web app\"]\n  click n1 \"atlas:web\"\n  n2[\"Edge\"]\n  click n2 \"atlas:edge\"\n  n3[\"Door\"]\n  click n3 \"atlas:door\"\n  n2 -->|\"delivers · live\"| n1\n  n1 -->|\"calls · request/answer\"| n3\n  class n2,n3 fam-service\n  class n1 fam-surface\n  class n1 is-focus\n  class n2,n3 kind-service\n  class n1 kind-surface\n"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "web",
+      "label": "Web app",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/web",
+      "summary": "The surface a person types into.",
+      "has_children": false,
+      "tier": "device",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "door",
+      "label": "Door",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/door",
+      "summary": "Answers a request; never streams.",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": {
+        "term": "term.door",
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/shipping.md"]
+      }
+    },
+    {
+      "id": "store",
+      "label": "Store",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/core",
+      "summary": "Where the records are kept.",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": {
+        "term": "term.store",
+        "rules": [],
+        "principles": [],
+        "docs": []
+      }
+    },
+    {
+      "id": "edge",
+      "label": "Edge",
+      "family": "service",
+      "kind": "service",
+      "path": "apps/edge",
+      "summary": "The only live transport.",
+      "has_children": false,
+      "tier": "edge",
+      "refs": { "term": "term.edge", "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "cells",
+      "label": "Cells",
+      "family": "store",
+      "kind": "store",
+      "path": "infra/src/database.ts",
+      "summary": "The database the store writes to.",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": {
+        "rules": [],
+        "principles": ["principle.safe-by-default"],
+        "docs": []
+      }
+    },
+    {
+      "id": "repo",
+      "label": "fixture",
+      "family": "service",
+      "kind": "directory",
+      "path": ".",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "apps",
+      "label": "apps",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "apps",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "apps-edge",
+      "label": "@fixture/edge",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/edge",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "apps-web",
+      "label": "@fixture/web",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/web",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "crates",
+      "label": "crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "crates",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "crates-core",
+      "label": "fixture-core",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/core",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "crates-door",
+      "label": "fixture-door",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/door",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "crates-outside",
+      "label": "fixture-outside",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/outside",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "infra",
+      "label": "infra",
+      "family": "store",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "infra",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "packages",
+      "label": "packages",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "packages",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "packages-ui",
+      "label": "@fixture/ui",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/ui",
+      "has_children": true,
+      "tier": "device",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "packages-virgil-schema",
+      "label": "@fixture/schema",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-schema",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "infra-src-compute-door-cloudrunv2-service",
+      "label": "cloudrunv2.Service · door",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/door.ts",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "infra-src-compute-door-serviceaccount-account",
+      "label": "serviceaccount.Account · door",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/door.ts",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "infra-src-database-sql-database",
+      "label": "sql.Database · database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database.ts",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "infra-src-database-sql-database-instance",
+      "label": "sql.DatabaseInstance · database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database.ts",
+      "has_children": false,
+      "tier": "cloud",
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:apps/web/src",
+      "label": "src",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "apps-web",
+      "path": "apps/web/src",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:apps/web/src/views",
+      "label": "views",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "d:apps/web/src",
+      "path": "apps/web/src/views",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:crates/core/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-core",
+      "path": "crates/core/src",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:crates/core/src/store",
+      "label": "store",
+      "family": "service",
+      "kind": "directory",
+      "parent": "d:crates/core/src",
+      "path": "crates/core/src/store",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:crates/door/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates-door",
+      "path": "crates/door/src",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:packages/ui/assets",
+      "label": "assets",
+      "family": "service",
+      "kind": "directory",
+      "parent": "packages-ui",
+      "path": "packages/ui/assets",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:packages/ui/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "packages-ui",
+      "path": "packages/ui/src",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:packages/virgil-schema/src",
+      "label": "src",
+      "family": "service",
+      "kind": "directory",
+      "parent": "packages-virgil-schema",
+      "path": "packages/virgil-schema/src",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "d:packages/virgil-schema/src/generated",
+      "label": "generated",
+      "family": "service",
+      "kind": "directory",
+      "parent": "d:packages/virgil-schema/src",
+      "path": "packages/virgil-schema/src/generated",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:apps/edge/package.json",
+      "label": "package.json",
+      "family": "surface",
+      "kind": "file",
+      "parent": "apps-edge",
+      "path": "apps/edge/package.json",
+      "lines": 4,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:apps/web/package.json",
+      "label": "package.json",
+      "family": "surface",
+      "kind": "file",
+      "parent": "apps-web",
+      "path": "apps/web/package.json",
+      "lines": 8,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:apps/web/src/index.ts",
+      "label": "index.ts",
+      "family": "surface",
+      "kind": "file",
+      "parent": "d:apps/web/src",
+      "path": "apps/web/src/index.ts",
+      "lines": 1,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:apps/web/src/views/home.ts",
+      "label": "home.ts",
+      "family": "surface",
+      "kind": "file",
+      "parent": "d:apps/web/src/views",
+      "path": "apps/web/src/views/home.ts",
+      "lines": 1,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/core/Cargo.toml",
+      "label": "Cargo.toml",
+      "family": "service",
+      "kind": "file",
+      "parent": "crates-core",
+      "path": "crates/core/Cargo.toml",
+      "lines": 4,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/core/src/lib.rs",
+      "label": "lib.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/core/src",
+      "path": "crates/core/src/lib.rs",
+      "lines": 1,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/core/src/store/mod.rs",
+      "label": "mod.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/core/src/store",
+      "path": "crates/core/src/store/mod.rs",
+      "lines": 1,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/core/src/store/rows.rs",
+      "label": "rows.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/core/src/store",
+      "path": "crates/core/src/store/rows.rs",
+      "lines": 5,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/door/Cargo.toml",
+      "label": "Cargo.toml",
+      "family": "service",
+      "kind": "file",
+      "parent": "crates-door",
+      "path": "crates/door/Cargo.toml",
+      "lines": 7,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/door/src/main.rs",
+      "label": "main.rs",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:crates/door/src",
+      "path": "crates/door/src/main.rs",
+      "lines": 3,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:crates/outside/Cargo.toml",
+      "label": "Cargo.toml",
+      "family": "service",
+      "kind": "file",
+      "parent": "crates-outside",
+      "path": "crates/outside/Cargo.toml",
+      "lines": 7,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:packages/ui/assets/logo.png",
+      "label": "logo.png",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:packages/ui/assets",
+      "path": "packages/ui/assets/logo.png",
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:packages/ui/package.json",
+      "label": "package.json",
+      "family": "service",
+      "kind": "file",
+      "parent": "packages-ui",
+      "path": "packages/ui/package.json",
+      "lines": 4,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:packages/ui/src/button.ts",
+      "label": "button.ts",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:packages/ui/src",
+      "path": "packages/ui/src/button.ts",
+      "lines": 1,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:packages/virgil-schema/package.json",
+      "label": "package.json",
+      "family": "service",
+      "kind": "file",
+      "parent": "packages-virgil-schema",
+      "path": "packages/virgil-schema/package.json",
+      "lines": 4,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "f:packages/virgil-schema/src/generated/schemas.json",
+      "label": "schemas.json",
+      "family": "service",
+      "kind": "file",
+      "parent": "d:packages/virgil-schema/src/generated",
+      "path": "packages/virgil-schema/src/generated/schemas.json",
+      "lines": 52,
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "records-area:conversation",
+      "label": "Messages and channels",
+      "family": "store",
+      "kind": "area",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "records-area:people",
+      "label": "People",
+      "family": "store",
+      "kind": "area",
+      "has_children": true,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "records:channel",
+      "label": "channel",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:conversation",
+      "summary": "A place members talk.",
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "records:message",
+      "label": "message",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:conversation",
+      "summary": "One utterance in a channel.",
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    },
+    {
+      "id": "records:principal",
+      "label": "principal",
+      "family": "store",
+      "kind": "collection",
+      "parent": "records-area:people",
+      "summary": "Someone who acts: a person or an agent.",
+      "has_children": false,
+      "refs": { "rules": [], "principles": [], "docs": [] }
+    }
+  ],
+  "edges": [
+    {
+      "from": "web",
+      "to": "door",
+      "kind": "calls",
+      "label": "request/answer",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "door",
+      "to": "store",
+      "kind": "writes",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "store",
+      "to": "cells",
+      "kind": "writes",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "store",
+      "to": "edge",
+      "kind": "publishes",
+      "label": "outbox",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "edge",
+      "to": "web",
+      "kind": "delivers",
+      "label": "live",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "infra-src-compute-door-cloudrunv2-service",
+      "to": "door",
+      "kind": "deploys",
+      "label": "runs",
+      "evidence": {
+        "basis": "declared_intent",
+        "source": ".rosetta/atlas.json",
+        "extractor": "curation",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "apps-web",
+      "to": "packages-ui",
+      "kind": "depends",
+      "derived": { "source": "package.json" },
+      "evidence": {
+        "basis": "manifest_dependency",
+        "source": "apps/web/package.json",
+        "extractor": "workspace manifest",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "crates-door",
+      "to": "crates-core",
+      "kind": "depends",
+      "derived": { "source": "Cargo.toml" },
+      "evidence": {
+        "basis": "manifest_dependency",
+        "source": "crates/door/Cargo.toml",
+        "extractor": "workspace manifest",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "records:message",
+      "to": "records:channel",
+      "kind": "refs",
+      "label": "channel",
+      "derived": {
+        "source": "packages/virgil-schema/src/generated/schemas.json"
+      },
+      "evidence": {
+        "basis": "schema_fact",
+        "source": "packages/virgil-schema/src/generated/schemas.json",
+        "extractor": "record schema",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    },
+    {
+      "from": "records:message",
+      "to": "records:principal",
+      "kind": "refs",
+      "label": "decision.decided_by",
+      "derived": {
+        "source": "packages/virgil-schema/src/generated/schemas.json"
+      },
+      "evidence": {
+        "basis": "schema_fact",
+        "source": "packages/virgil-schema/src/generated/schemas.json",
+        "extractor": "record schema",
+        "revision": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7"
+      }
+    }
+  ],
+  "terms": [
+    {
+      "id": "term.group",
+      "name": "Group",
+      "definition": "The people who share one fixture.",
+      "avoid": [
+        {
+          "word": "workspace",
+          "except": ["Slack workspace", "Google Workspace"]
+        },
+        { "word": "team", "except": [] }
+      ],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.door",
+      "name": "Door",
+      "definition": "The service that answers a request; it never streams.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.store",
+      "name": "Store",
+      "definition": "Where the records are kept.",
+      "avoid": [],
+      "status": "settled",
+      "marked": true
+    },
+    {
+      "id": "term.edge",
+      "name": "Edge",
+      "definition": "The only live transport.",
+      "avoid": [],
+      "status": "proposed",
+      "marked": false
+    }
+  ],
+  "rules": [
+    {
+      "id": "principle.door-answers-edge-is-live",
+      "kind": "principle",
+      "title": "The door answers; the edge is live."
+    },
+    {
+      "id": "principle.safe-by-default",
+      "kind": "principle",
+      "title": "Safe by default."
+    },
+    {
+      "id": "rule.door-no-stream",
+      "kind": "rule",
+      "title": "The door never streams."
+    }
+  ],
+  "snapshot": {
+    "repository": "example/fixture",
+    "head": null,
+    "dirty": true,
+    "model_revision": "9071ceca7a0a280dbb547d5b1d4fe14b8d00c404b460fcfe2b25ba2a3677be2e",
+    "fingerprint": "8809ec5479f2bda17e726ea1c5b739ae4e9a929c722b7cd7a446ade0b965e9f7",
+    "coverage": "git_worktree"
+  }
+}

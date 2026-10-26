@@ -1,0 +1,13 @@
+flowchart LR
+  n1["channel"]
+  click n1 "atlas:records%3Achannel"
+  n2["message"]
+  click n2 "atlas:records%3Amessage"
+  n3["People"]
+  click n3 "atlas:records-area%3Apeople"
+  n2 -->|"channel"| n1
+  n2 -->|"decision.decided_by"| n3
+  class n1,n2,n3 fam-store
+  class n3 kind-area
+  class n1,n2 kind-collection
+  class n1,n2 scope-container

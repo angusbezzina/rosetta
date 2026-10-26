@@ -1,0 +1,35 @@
+{
+  "schema": "rosetta.assertions/v1",
+  "rules": [
+    {
+      "kind": "implementation_exists",
+      "id": "atlas-implementation-exists",
+      "capability": "glossary-atlas",
+      "part": "crates-virgil-atlas",
+      "term": "term.atlas"
+    },
+    {
+      "kind": "required_relationship",
+      "id": "viewer-uses-views",
+      "from": "packages-virgil-atlas-viewer",
+      "to": "packages-virgil-views",
+      "relation": "depends",
+      "term": "term.atlas"
+    },
+    {
+      "kind": "dependencies",
+      "id": "viewer-boundary",
+      "part": "packages-virgil-atlas-viewer",
+      "forbidden": ["packages-virgil-observability"],
+      "term": "term.atlas"
+    },
+    {
+      "kind": "required_relationship",
+      "id": "runtime-call-uncheckable",
+      "from": "crates-virgil-atlas",
+      "to": "packages-virgil-atlas-viewer",
+      "relation": "calls",
+      "term": "term.atlas"
+    }
+  ]
+}

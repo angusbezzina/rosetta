@@ -1,0 +1,27 @@
+flowchart LR
+  subgraph g1["Device"]
+    n1["Web app"]
+    click n1 "atlas:web"
+  end
+  subgraph g2["Cloud"]
+    n2["Door"]
+    click n2 "atlas:door"
+    n3[("Store")]
+    click n3 "atlas:store"
+    n5[("Cells")]
+    click n5 "atlas:cells"
+  end
+  subgraph g3["Edge"]
+    n4["Edge"]
+    click n4 "atlas:edge"
+  end
+  n2 -->|"writes"| n3
+  n3 -->|"writes"| n5
+  n3 -->|"publishes · outbox"| n4
+  n4 -->|"delivers · live"| n1
+  class n2,n4 fam-service
+  class n3,n5 fam-store
+  class n1 fam-surface
+  class n2,n4 kind-service
+  class n3,n5 kind-store
+  class n1 kind-surface

@@ -1,0 +1,6061 @@
+{
+  "schema": "virgil.atlas/v1",
+  "project": { "name": "Virgil", "repo": "gpu-cli/virgil" },
+  "nodes": [
+    {
+      "id": "desktop-app",
+      "label": "Desktop app",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/virgil-app",
+      "summary": "The Electron front end of the daemon: the product window and the HUD.",
+      "tier": "device",
+      "refs": { "docs": ["docs/runbooks/product-invariants.md"] }
+    },
+    {
+      "id": "hud",
+      "label": "HUD",
+      "family": "surface",
+      "kind": "surface",
+      "parent": "desktop-app",
+      "path": "apps/virgil-app/src/renderer/hud",
+      "summary": "The Electron app's always-on-top window over the desktop: the flame, its pill and the menu-bar item.",
+      "tier": "device",
+      "refs": { "term": "term.hud" }
+    },
+    {
+      "id": "clipper",
+      "label": "Web clipper",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/virgil-clipper",
+      "summary": "The browser extension that clips a page or a selection into a sphere's recall, talking only to the daemon.",
+      "tier": "device",
+      "refs": {
+        "term": "term.clipper",
+        "docs": ["docs/runbooks/web-clipper.md"]
+      }
+    },
+    {
+      "id": "portal",
+      "label": "Portal",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/portal",
+      "summary": "The account web service that signs people and their devices in and knows which groups each account belongs to.",
+      "tier": "cloud",
+      "refs": { "term": "term.portal" }
+    },
+    {
+      "id": "daemon",
+      "label": "Daemon",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-desktop",
+      "summary": "The always-on local process where product logic lives.",
+      "tier": "device",
+      "refs": {
+        "term": "term.daemon",
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      }
+    },
+    {
+      "id": "door",
+      "label": "Door",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve/src/door.rs",
+      "summary": "The virgil-serve service that answers a request; it never streams.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.door",
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      }
+    },
+    {
+      "id": "worker",
+      "label": "Worker",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve/src/worker",
+      "summary": "The virgil-serve service that runs the outbox, events and lifecycle work.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.worker",
+        "docs": ["docs/runbooks/event-fanout.md"]
+      }
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/virgil-serve/src/worker/push_delivery.rs",
+      "summary": "The virgil-serve service that sends through providers.",
+      "tier": "cloud",
+      "refs": { "term": "term.delivery" }
+    },
+    {
+      "id": "edge",
+      "label": "Realtime edge",
+      "family": "service",
+      "kind": "service",
+      "path": "apps/realtime-edge",
+      "summary": "The only live transport: it carries signed bundles of committed records to each reader scope.",
+      "tier": "edge",
+      "refs": {
+        "term": "term.edge",
+        "principles": ["principle.door-answers-edge-is-live"]
+      }
+    },
+    {
+      "id": "postgres",
+      "label": "Postgres",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/virgil-authority-pg",
+      "summary": "A cell's database: the committed records, their outbox and the event tables the door and the workers share.",
+      "tier": "cloud"
+    },
+    {
+      "id": "replica",
+      "label": "SQLite replica",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/virgil-replica-sqlite",
+      "summary": "A device's local copy of the records it may read, which the daemon answers reads from.",
+      "tier": "device",
+      "refs": { "term": "term.replica" }
+    },
+    {
+      "id": "kms",
+      "label": "Cloud KMS",
+      "family": "external",
+      "kind": "external",
+      "path": "infra/src/compute/document-maintenance.ts",
+      "summary": "The key service that guards document maintenance: a member's device wraps a document's key to it, the door reads only its public key, and only the worker may decrypt, to compact the document.",
+      "tier": "cloud",
+      "refs": {
+        "principles": ["principle.safe-by-default"],
+        "docs": [
+          "planning/encryption/DECISION.md",
+          "docs/runbooks/documents-catalog.md"
+        ]
+      }
+    },
+    {
+      "id": "cato",
+      "label": "Cato",
+      "family": "agent",
+      "kind": "agent",
+      "path": "tools/cato",
+      "summary": "The merge agent: it readies a draft pull request, verifies it merged onto main and moves main to that commit.",
+      "refs": { "term": "term.cato", "docs": ["tools/cato/README.md"] }
+    },
+    {
+      "id": "messo",
+      "label": "Messo",
+      "family": "agent",
+      "kind": "agent",
+      "path": "tools/messo",
+      "summary": "The maintenance agent: it works the rulebook sweep's findings and reported bugs into draft pull requests.",
+      "refs": { "term": "term.messo", "docs": ["docs/runbooks/messo.md"] }
+    },
+    {
+      "id": "providers",
+      "label": "Providers",
+      "family": "external",
+      "kind": "external",
+      "path": "crates/agent-comms",
+      "summary": "Slack, Telegram and Discord, which the daemon's comms adapters connect, and the push services delivery sends through.",
+      "tier": "providers"
+    },
+    {
+      "id": "blobs",
+      "label": "Blob store",
+      "family": "store",
+      "kind": "store",
+      "path": "crates/virgil-serve/src/blobs.rs",
+      "summary": "Cloudflare R2, which holds encrypted attachment bytes, sealed ranges and bot media; the door grants capability URLs to it.",
+      "tier": "providers"
+    },
+    {
+      "id": "cloudflare-realtime",
+      "label": "Cloudflare Realtime",
+      "family": "external",
+      "kind": "external",
+      "path": "crates/virgil-serve/src/realtime.rs",
+      "summary": "The SFU that carries a huddle's audio and video between participants; the door opens its sessions and mints TURN credentials, and the app sends media to it.",
+      "tier": "providers",
+      "refs": { "term": "term.huddle", "docs": ["docs/runbooks/huddles.md"] }
+    },
+    {
+      "id": "clerk",
+      "label": "Clerk",
+      "family": "external",
+      "kind": "external",
+      "summary": "The sign-in service behind the portal's browser pages, where a person signs in to approve a device.",
+      "tier": "external",
+      "refs": { "term": "term.portal", "docs": ["docs/runbooks/sign-in.md"] }
+    },
+    {
+      "id": "ci",
+      "label": "CI",
+      "family": "service",
+      "kind": "service",
+      "path": ".github/workflows/ci.yml",
+      "summary": "The GitHub Actions run that tests a change: lanes chosen by the paths it touches, each on its own runner, and ci-gate waiting on every lane it asked for.",
+      "tier": "external",
+      "refs": {
+        "term": "term.gate",
+        "docs": ["docs/runbooks/ci-cost.md", "docs/runbooks/gate-design.md"]
+      }
+    },
+    {
+      "id": "deploy-door",
+      "label": "Cell deploy",
+      "family": "service",
+      "kind": "service",
+      "path": ".github/workflows/deploy-door.yml",
+      "summary": "The workflow that ships the cell when main moves: it builds the virgil-serve image, deploys the edge first, then the door, worker and delivery, and proves each revision is serving.",
+      "tier": "external",
+      "refs": {
+        "term": "term.cell",
+        "docs": [
+          "docs/runbooks/releasing.md",
+          "docs/runbooks/realtime-edge-deploy.md"
+        ]
+      }
+    },
+    {
+      "id": "production-release",
+      "label": "Production release",
+      "family": "service",
+      "kind": "resource",
+      "path": "infra/production.release",
+      "summary": "The release number a person bumps and merges by hand to apply production infrastructure; Cato never lands it.",
+      "refs": { "term": "term.cato", "docs": ["docs/runbooks/releasing.md"] }
+    },
+    {
+      "id": "repo",
+      "label": "Virgil repository",
+      "family": "service",
+      "kind": "directory",
+      "path": ".",
+      "summary": "The whole repository: the apps people run, the Rust crates behind them, the shared TypeScript packages, the tools, the cloud infrastructure and the prototypes.",
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "apps",
+      "label": "Apps",
+      "family": "surface",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "apps",
+      "summary": "What people run and what serves them live: the desktop app, the portal, the web clipper, the guest web client, the iPhone app, the browser app and the realtime edge.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-portal",
+      "label": "Portal app",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/portal",
+      "summary": "The Next.js account site: sign-in through Clerk, approving a device's code, groups, billing and integrations.",
+      "refs": {
+        "term": "term.portal",
+        "docs": ["docs/runbooks/sign-in.md", "docs/runbooks/portal-verify.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-realtime-edge",
+      "label": "Realtime edge app",
+      "family": "service",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/realtime-edge",
+      "summary": "The Cloudflare Worker that verifies a cell's signed batches and fans them out through its stream and gateway Durable Objects to every device that may read them.",
+      "refs": {
+        "term": "term.edge",
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/realtime-edge-deploy.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-virgil-app",
+      "label": "Desktop app package",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-app",
+      "summary": "The Electron app: the product window and the HUD, a thin client of the daemon over its local gRPC socket.",
+      "refs": {
+        "term": "term.daemon",
+        "docs": [
+          "docs/runbooks/product-invariants.md",
+          "docs/runbooks/dev-experience.md"
+        ]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-virgil-clipper",
+      "label": "Web clipper extension",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-clipper",
+      "summary": "The browser extension that clips a page or a selection into a sphere's recall, extracting in the browser and talking only to the daemon on loopback.",
+      "refs": {
+        "term": "term.clipper",
+        "docs": ["docs/runbooks/web-clipper.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-virgil-ios",
+      "label": "iPhone app",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-ios",
+      "summary": "Virgil for iPhone: a Tauri app whose native side holds the sign-in, the sync and the SQLite replica, so its web view holds no credential and no database.",
+      "refs": { "term": "term.replica" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-virgil-ios-src-tauri",
+      "label": "iPhone native host",
+      "family": "surface",
+      "kind": "crate",
+      "parent": "apps-virgil-ios",
+      "path": "apps/virgil-ios/src-tauri",
+      "summary": "The Rust side of the iPhone app: the keychain, sign-in, push and the adapter its web view calls into.",
+      "refs": { "term": "term.device" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "apps-virgil-ui",
+      "label": "Browser app",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-ui",
+      "summary": "The product UI as a browser app, served by the daemon's authenticated loopback gateway.",
+      "refs": { "docs": ["docs/runbooks/sign-in.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "apps-virgil-web",
+      "label": "Guest web client",
+      "family": "surface",
+      "kind": "app",
+      "parent": "apps",
+      "path": "apps/virgil-web",
+      "summary": "One channel and its huddle in a browser, opened by a guest from an invite link with no install and no account.",
+      "refs": {
+        "term": "term.huddle",
+        "docs": ["docs/runbooks/web-client.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "crates",
+      "label": "Rust crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "crates",
+      "summary": "The Rust crates: the daemon and its product services, the hosted cell, the shared Records contract and storage, the CLI and their test suites.",
+      "refs": { "docs": ["docs/runbooks/shipping-architecture.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-acp",
+      "label": "ACP client",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/acp",
+      "summary": "Runs AI provider adapters such as Claude and Codex as child processes and speaks the Agent Client Protocol to them.",
+      "refs": { "term": "term.acp", "docs": ["docs/runbooks/ai-providers.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms",
+      "label": "Comms adapters",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates",
+      "path": "crates/agent-comms",
+      "summary": "The crates that connect a group's Slack, Discord and Telegram, the webhook relay in front of them, and the local comms surface the daemon's control plane calls.",
+      "refs": { "docs": ["docs/runbooks/channels-and-pulls.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-api",
+      "label": "Comms local interface",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/api",
+      "summary": "The interface the comms boundary offers its local callers, such as the daemon's control plane and the CLI.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-core",
+      "label": "Comms types",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/core",
+      "summary": "The message, channel and event types every comms crate speaks, generated from the comms protocol definition.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-discord",
+      "label": "Discord adapter",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/discord",
+      "summary": "Connects a Discord bot through Discord's gateway over an outbound socket, so it needs no public address.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-policy",
+      "label": "Comms channel policy",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/policy",
+      "summary": "Says what a connected channel may do: pairing, the allowlist, the mention gate and its capabilities.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-relay",
+      "label": "Comms webhook relay",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/relay",
+      "summary": "The Cloud Run service that takes provider webhooks on public HTTPS and forwards them over authenticated sockets to the install they are for, storing no plaintext.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-runtime-support",
+      "label": "Comms runtime wiring",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/runtime-support",
+      "summary": "Joins the comms types, durable state and spool into the runtime the provider adapters run in.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-secrets",
+      "label": "Comms secret storage",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/secrets",
+      "summary": "The interface through which the comms adapters keep and read their provider credentials, without naming where they live.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-service",
+      "label": "Comms orchestration",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/service",
+      "summary": "The one local implementation of the comms interface, routing between its callers and the provider adapters.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-slack",
+      "label": "Slack adapter",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/slack",
+      "summary": "Connects a Slack app over Socket Mode, an outbound socket, so it needs no public address.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-spool",
+      "label": "Comms spool",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/spool",
+      "summary": "The durable inbound spool and outbound retry queue for comms messages.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-state",
+      "label": "Comms state",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/state",
+      "summary": "Durable comms bookkeeping: replay windows, cursors, de-duplication and turns in flight.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-telegram",
+      "label": "Telegram adapter",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/telegram",
+      "summary": "Connects a Telegram bot through the Bot API, taking its updates by webhook through the relay.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-comms-test-harness",
+      "label": "Comms test servers",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-comms",
+      "path": "crates/agent-comms/test-harness",
+      "summary": "Mock Slack and Telegram servers for testing the comms adapters without the real providers.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-recall",
+      "label": "Recall ingest crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates",
+      "path": "crates/agent-recall",
+      "summary": "Recall's shared types and the importers that turn outside material into recall input.",
+      "refs": { "term": "term.recall" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-recall-core",
+      "label": "Recall types",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-recall",
+      "path": "crates/agent-recall/core",
+      "summary": "The types of recall's memories, entities, provenance and trust tiers, shared by ingest, recall and meetings.",
+      "refs": { "term": "term.memory", "docs": ["docs/runbooks/recall.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-agent-recall-ingest",
+      "label": "Recall importers",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-agent-recall",
+      "path": "crates/agent-recall/ingest",
+      "summary": "Parses outside sources (Claude and OpenAI exports, Notion, Obsidian, markdown, meetings and web clips) into recall input.",
+      "refs": {
+        "term": "term.recall",
+        "docs": [
+          "docs/runbooks/context-import.md",
+          "docs/runbooks/notion-move-in.md"
+        ]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-audio",
+      "label": "Audio capture",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/audio",
+      "summary": "Native microphone and system-audio capture for external meetings; huddle audio comes from the app instead.",
+      "refs": { "docs": ["docs/runbooks/media-pipeline-ownership.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice",
+      "label": "Brand voice crates",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates",
+      "path": "crates/brand-voice",
+      "summary": "The brand-voice subsystem: a corpus of a person's writing, training pairs and rewrite adapters trained from them, and a planned management surface.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice-cli",
+      "label": "Brand voice training tool",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-brand-voice",
+      "path": "crates/brand-voice/cli",
+      "summary": "A developer command for brand-voice training with no model client of its own; product generation runs through the daemon's ACP jobs.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice-core",
+      "label": "Brand voice types",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-brand-voice",
+      "path": "crates/brand-voice/core",
+      "summary": "The shared types of brand voices: a rewrite adapter per voice and platform, and the data it is trained on.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice-corpus",
+      "label": "Brand voice corpus",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-brand-voice",
+      "path": "crates/brand-voice/corpus",
+      "summary": "Assembles the writing a brand voice learns from, with consent, de-duplication, quality filters and right-to-forget.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice-synth",
+      "label": "Brand voice pair synthesis",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-brand-voice",
+      "path": "crates/brand-voice/synth",
+      "summary": "Builds training pairs and style cards from a voice's corpus, parked for the voice work to come.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-brand-voice-train",
+      "label": "Brand voice training seam",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-brand-voice",
+      "path": "crates/brand-voice/train",
+      "summary": "The thin Rust seam to the Python harness that trains a voice's rewrite adapter.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-integrations",
+      "label": "Integrations",
+      "family": "service",
+      "kind": "directory",
+      "parent": "crates",
+      "path": "crates/integrations",
+      "summary": "Protocol crates for outside services Virgil reads: CalDAV calendars.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-integrations-caldav",
+      "label": "CalDAV client",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates-integrations",
+      "path": "crates/integrations/caldav",
+      "summary": "Discovers and syncs CalDAV calendars with an app password or OAuth, for the calendar service.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-media",
+      "label": "Meeting media pipeline",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/media",
+      "summary": "Capture and transcript orchestration for meetings and huddles: audio sources, voice detection and speech-to-text.",
+      "refs": {
+        "term": "term.huddle",
+        "docs": ["docs/runbooks/media-pipeline-ownership.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-meeting",
+      "label": "Meeting intelligence model",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/meeting",
+      "summary": "The meeting event model, its reducer and the windows insights are made over, with their evaluation harness.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-meeting-qa",
+      "label": "Meeting QA client",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/meeting-qa",
+      "summary": "A headless client that drives a running daemon's meeting prep and in-meeting insights from fixture files.",
+      "refs": { "term": "term.daemon" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-meeting-witness",
+      "label": "Witness meeting events",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/meeting-witness",
+      "summary": "Turns the media pipeline's live capture and transcription events into meeting events.",
+      "refs": { "term": "term.witness" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-naos-machine-auth",
+      "label": "Machine identity primitives",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/naos-machine-auth",
+      "summary": "Product-neutral P-256 keys, DPoP proofs, machine tokens and relay proofs.",
+      "refs": { "term": "term.device" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-naos-secure-store",
+      "label": "Secure credential storage",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/naos-secure-store",
+      "summary": "Product-neutral credential storage in the keychain and on disk, which each product crate configures.",
+      "tier": "device",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-pricing",
+      "label": "Model pricing table",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/pricing",
+      "summary": "A static table of AI model prices per million tokens, parked for cost tracking and billing.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-recall-meetings-e2e",
+      "label": "Recall meetings tests",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/recall-meetings-e2e",
+      "summary": "Model-free end-to-end tests of meeting prep and in-meeting insights over the real recall engine.",
+      "refs": { "term": "term.recall" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-source-capture",
+      "label": "Source capture",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/source-capture",
+      "summary": "Turns a 'save this' message in a comms channel, a link or an attachment, into recall input: the comms counterpart of the web clipper.",
+      "refs": { "term": "term.capture" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-stt",
+      "label": "Speech to text",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/stt",
+      "summary": "The speech-to-text interface and its backends, which run on Witness's models.",
+      "tier": "device",
+      "refs": {
+        "term": "term.witness",
+        "docs": ["docs/runbooks/media-pipeline-ownership.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-acceptance",
+      "label": "Corpus acceptance suite",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-acceptance",
+      "summary": "A test-only crate: a real door on PostgreSQL loaded with a two-year synthetic group, a real daemon replica syncing from it and the app's data layer driven headlessly.",
+      "refs": { "term": "term.replica" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-agent-runtime",
+      "label": "Agent runtime",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-agent-runtime",
+      "summary": "Runs every generative job: ACP provider profiles, the bundled Codex seat, the MCP hub that hands Virgil's tools to each session, and the registry of outside agents.",
+      "tier": "device",
+      "refs": { "term": "term.acp", "docs": ["docs/runbooks/ai-providers.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-atlas",
+      "label": "Glossary and atlas",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-atlas",
+      "summary": "Checks and renders the glossary and the atlas, derives the atlas from the repo and builds the bundle the atlas viewer draws.",
+      "refs": {
+        "term": "term.atlas",
+        "principles": ["principle.mattpocock.shared-domain-language"],
+        "docs": ["docs/runbooks/atlas.md", "docs/runbooks/glossary.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-attention-service",
+      "label": "Attention service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-attention-service",
+      "summary": "Decides what deserves a person's attention now and how loudly, from the inbox, the calendar, meetings, the companion and huddles; every client only draws it.",
+      "refs": { "term": "term.daemon" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-attest",
+      "label": "Cell attestation",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-attest",
+      "summary": "Says what a cell signs and how a reader checks it: the cell's signing key, the did:key a client pins and the messages a range or a snapshot is signed over.",
+      "refs": { "term": "term.cell" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-authority-pg",
+      "label": "PostgreSQL authority",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-authority-pg",
+      "summary": "The cell's Records store on PostgreSQL: its migrations, the write transaction that locks a container, commands and the outbox.",
+      "refs": {
+        "term": "term.authority",
+        "docs": ["docs/runbooks/storage-v2-postgres.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-bench",
+      "label": "Storage benches",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-bench",
+      "summary": "Performance benches that run one workload against every storage engine through the shared storage interface.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-brief",
+      "label": "Brief service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-brief",
+      "summary": "The daemon's daily brief: collectors, the compile pipeline, triggers, editions and the dashboard service.",
+      "refs": { "term": "term.brief" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-calendar",
+      "label": "Calendar service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-calendar",
+      "summary": "The daemon's calendar: agenda providers, the OAuth broker and the Calendar service.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-cato-archive",
+      "label": "Cato archive codec",
+      "family": "agent",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-cato-archive",
+      "summary": "A small command Cato runs to seal and open its archives with Virgil's one sealing primitive.",
+      "refs": { "term": "term.cato" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-cell-control",
+      "label": "Cell control contract",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-cell-control",
+      "summary": "The contract between a cell and the portal (commands, the pull of versioned facts and the entitlement token's claims), with an in-memory implementation for tests and the dev portal.",
+      "refs": { "term": "term.cell" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-cli",
+      "label": "virgil CLI",
+      "family": "surface",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-cli",
+      "summary": "The virgil command: sign-in, install and update, and typed requests to the daemon for tasks, repos, recall, the atlas and more.",
+      "refs": {
+        "term": "term.daemon",
+        "docs": ["docs/runbooks/sign-in.md", "docs/runbooks/repos.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-clipper-service",
+      "label": "Clipper service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-clipper-service",
+      "summary": "The daemon's loopback HTTP surface the web clipper talks to, and the extension's pairing.",
+      "refs": {
+        "term": "term.clipper",
+        "docs": ["docs/runbooks/web-clipper.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-comms-service",
+      "label": "Comms product service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-comms-service",
+      "summary": "The daemon's comms features: provider setup, channel pulls and the /digest command.",
+      "refs": { "docs": ["docs/runbooks/channels-and-pulls.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-companion-service",
+      "label": "Companion service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-companion-service",
+      "summary": "Gives each sphere Virgil's persona and channel, watches companion messages and projects each ACP session into message records.",
+      "refs": {
+        "term": "term.companion",
+        "docs": ["docs/runbooks/companion.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-conformance",
+      "label": "Door conformance suite",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-conformance",
+      "summary": "Black-box scenarios any door must pass over the wire, and a seeded simulation over the real engine.",
+      "refs": { "term": "term.door" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-context-query",
+      "label": "Context query contract",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-context-query",
+      "summary": "The typed request and result the recall verbs share across the daemon, the CLI and the MCP hub.",
+      "refs": { "term": "term.recall", "docs": ["docs/runbooks/recall.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-control-plane",
+      "label": "Daemon control plane",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-control-plane",
+      "summary": "The daemon's durable product domains and their logical state, as a library the daemon composes.",
+      "refs": { "term": "term.daemon" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-core",
+      "label": "Records core",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-core",
+      "summary": "The pure contract layer of Records: ids, the operation envelope and the collections every home and client shares.",
+      "refs": {
+        "term": "term.records",
+        "docs": ["packages/virgil-schema/CONTRACT.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-corpus",
+      "label": "Synthetic group generator",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-corpus",
+      "summary": "Writes a deterministic two-year Convos group into any store, for the acceptance suite and benches.",
+      "refs": { "term": "term.convos" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-daemon-host",
+      "label": "Daemon host",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-daemon-host",
+      "summary": "The daemon's skeleton: the entry gate, the UI gateway, status and control, app update, presence and the router every product service registers on.",
+      "refs": {
+        "term": "term.daemon",
+        "docs": ["docs/runbooks/always-on-lifecycle.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-daemon-proto",
+      "label": "Daemon protocols",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-daemon-proto",
+      "summary": "The gRPC contracts of every service the daemon offers its clients over its local socket.",
+      "refs": { "term": "term.daemon" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-desktop",
+      "label": "Daemon binary",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-desktop",
+      "summary": "The always-on daemon process: it composes every product service, Witness, ACP sessions and the MCP tools behind the local gRPC socket.",
+      "refs": {
+        "term": "term.daemon",
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-device-auth",
+      "label": "Device identity",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-device-auth",
+      "summary": "A device's sign-in: its key and account credentials, the portal connection, group entitlements and group keys; the iPhone app links it too.",
+      "tier": "device",
+      "refs": { "term": "term.device", "docs": ["docs/runbooks/sign-in.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-device-sync",
+      "label": "Device sync",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-device-sync",
+      "summary": "The device's Records replica and its sync with the door and the edge: group sync, the routed data surface and the outbox of pending writes.",
+      "tier": "device",
+      "refs": {
+        "term": "term.replica",
+        "docs": ["docs/runbooks/records-read-consistency.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-doc",
+      "label": "Live document engine",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-doc",
+      "summary": "The Loro engine behind live documents: blocks, batching, confirmations, versions, shallow bases and erasure.",
+      "tier": "device",
+      "refs": {
+        "term": "term.live-document",
+        "docs": ["docs/runbooks/documents-catalog.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-doc-html",
+      "label": "HTML page model",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-doc-html",
+      "summary": "Holds a page's HTML as a Loro element tree: import, serialization and reconciling an edit.",
+      "refs": { "term": "term.page" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-doc-wasm",
+      "label": "Document engine for the web",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-doc-wasm",
+      "summary": "The live-document engine compiled to WebAssembly, so the web and the desktop run one implementation.",
+      "refs": { "term": "term.live-document" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-document-service",
+      "label": "Document service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-document-service",
+      "summary": "The daemon's live documents and pages: the page rooms editors join, sealed updates to the door and comments, all through the ordinary Records access gate.",
+      "tier": "device",
+      "refs": {
+        "term": "term.live-document",
+        "docs": [
+          "docs/runbooks/documents-catalog.md",
+          "docs/runbooks/page-templates.md"
+        ]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-embedding",
+      "label": "Embedding contract",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-embedding",
+      "summary": "The inference-free contract between Recall and a local embedding model: the model's identity, the vector interface and a bounded query coordinator.",
+      "refs": { "term": "term.recall" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-evidence",
+      "label": "Evidence queries",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-evidence",
+      "summary": "The bounded, typed evidence queries the CLI runs.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-fake-portal",
+      "label": "Fake portal",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-fake-portal",
+      "summary": "The test harness's portal: accounts and the cell control plane in one process, so a door and a daemon sign in for real without Clerk.",
+      "refs": {
+        "term": "term.portal",
+        "docs": ["docs/runbooks/dev-experience.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-image-privacy",
+      "label": "Image privacy",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-image-privacy",
+      "summary": "Strips private metadata from an image on the device before it is stored, sent or handed to an AI provider.",
+      "refs": { "docs": ["docs/runbooks/image-privacy.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-import-format",
+      "label": "History import format",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-import-format",
+      "summary": "virgil-import/1, the one format every history import reads: its record types, a streaming reader and writer, validation and the author map.",
+      "refs": { "docs": ["docs/runbooks/history-import.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-import-slack",
+      "label": "Slack export converter",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-import-slack",
+      "summary": "Reads a Slack export and writes a virgil-import/1 bundle and an author map to fill.",
+      "refs": { "docs": ["docs/runbooks/history-import-slack.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-install-config",
+      "label": "Install config",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-install-config",
+      "summary": "Reads the optional config file staged with an install, which sets that install's portal and comms relay.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-installer",
+      "label": "Installer",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-installer",
+      "summary": "Assembles each version's install tree and the Virgil.app launcher.",
+      "refs": {
+        "term": "term.bundle",
+        "docs": ["docs/runbooks/always-on-lifecycle.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-link-previews",
+      "label": "Link previews",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-link-previews",
+      "summary": "The sender's daemon finds links in its own committed messages, fetches their previews on this Mac and commits them through the door.",
+      "refs": { "docs": ["docs/runbooks/message-links.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-llm-host",
+      "label": "Model host",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-llm-host",
+      "summary": "Provisions native model files and runs the Witness speech and embedding runtimes the daemon loads on demand.",
+      "tier": "device",
+      "refs": {
+        "term": "term.witness",
+        "docs": ["docs/runbooks/llm-host-supervision.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-machine-auth",
+      "label": "Virgil machine identity",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-machine-auth",
+      "summary": "Virgil's policy for a machine's identity, built on the product-neutral DPoP primitives.",
+      "refs": { "term": "term.device" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-meeting-data",
+      "label": "Meeting data",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-meeting-data",
+      "summary": "Inference-free meeting projections Recall reads, and the ports shared with the meeting service.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-meeting-service",
+      "label": "Meeting service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-meeting-service",
+      "summary": "Meetings and huddles in the daemon: capture, transcripts, the summary, notes, series settings, conversation briefs and voice settings.",
+      "tier": "device",
+      "refs": {
+        "term": "term.huddle",
+        "docs": [
+          "docs/runbooks/huddles.md",
+          "docs/runbooks/huddle-transcript-recovery.md"
+        ]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-message-document",
+      "label": "Message document",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-message-document",
+      "summary": "The typed blocks and inlines a message body is made of, with the one closed decoder writers and readers share.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-message-links",
+      "label": "Message links",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-message-links",
+      "summary": "Finds the links a message carries and decides who may write their preview, the same way in the daemon and the door.",
+      "refs": { "docs": ["docs/runbooks/message-links.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-prep",
+      "label": "Meeting prep service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-prep",
+      "summary": "Prepares a person for a meeting: gathering context, generating the prep and diving deeper, behind the MeetingPrep service.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-product",
+      "label": "Product command contract",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-product",
+      "summary": "The typed commands for routines and tasks that the CLI and the in-agent product bridge share.",
+      "refs": { "term": "term.task" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-recall-bench",
+      "label": "Recall bench",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-recall-bench",
+      "summary": "A reproducible synthetic history of years of use and a harness that scores the recall verbs' speed and quality.",
+      "refs": { "term": "term.recall" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-recall-index",
+      "label": "Recall index",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-recall-index",
+      "summary": "A rebuildable SQLite file beside the replica that answers recall's keyword and vector searches.",
+      "tier": "device",
+      "refs": { "term": "term.recall", "docs": ["docs/runbooks/recall.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-recall-service",
+      "label": "Recall service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-recall-service",
+      "summary": "The daemon's memory: the recall engine and service, resource capture, generation and onboarding scans.",
+      "refs": { "term": "term.recall", "docs": ["docs/runbooks/recall.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-replica-sqlite",
+      "label": "Replica store",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-replica-sqlite",
+      "summary": "The device's SQLite catalog for each signed-in profile: committed rows, pending writes, coverage and snapshot generations.",
+      "refs": {
+        "term": "term.replica",
+        "docs": ["docs/runbooks/sqlite-migrations.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-sealed",
+      "label": "Sealing",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-sealed",
+      "summary": "Virgil's one sealing primitive: container and scope keys, the sealed envelope, device wraps, grants and person-held recovery.",
+      "tier": "device",
+      "refs": { "docs": ["planning/encryption/DECISION.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-serve",
+      "label": "Cell binary",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-serve",
+      "summary": "The hosted cell as one binary: the door, the worker and delivery, chosen by subcommand.",
+      "refs": {
+        "term": "term.cell",
+        "rules": ["rule.door-no-stream"],
+        "principles": ["principle.door-answers-edge-is-live"],
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-state-bundles",
+      "label": "Logical state bundles",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-state-bundles",
+      "summary": "Says who owns which product state and how it is exported, imported and rolled back as logical bundles.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-storage",
+      "label": "Storage interface",
+      "family": "store",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-storage",
+      "summary": "The engine-neutral interface every Records store implements (authority, read, replica and outbox), with the shared writer and an in-memory reference store.",
+      "refs": { "term": "term.records" },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-telemetry",
+      "label": "Action telemetry",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-telemetry",
+      "summary": "The action-telemetry contract every entry point shares: the trace context, the action event and its conversion to OpenTelemetry.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-test-support",
+      "label": "virgil-test-support",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-test-support",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-views-core",
+      "label": "Views core",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-views-core",
+      "summary": "The platform-neutral half of HTML views: the query language and its evaluator, sorting, the sealed split and the view command executor, read alike by the daemon, the iPhone and the door.",
+      "refs": { "term": "term.view", "docs": ["docs/runbooks/html-views.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-views-service",
+      "label": "Views service",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-views-service",
+      "summary": "The daemon's HTML views: templates and the letterhead, the validator, query evaluation, generation as an ACP job and the Views service.",
+      "refs": { "term": "term.view", "docs": ["docs/runbooks/html-views.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-web-content",
+      "label": "Public web fetch",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-web-content",
+      "summary": "The bounded, SSRF-guarded transport the daemon fetches public pages with, for capture and link previews; the cell never fetches.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-wire",
+      "label": "Records wire surface",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-wire",
+      "summary": "The transport-neutral Records surface (scope resolution, the mutate batch, the query pager), carried over the daemon's socket and the door's HTTP.",
+      "refs": { "term": "term.records", "rules": ["rule.typed-payloads"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "crates-virgil-zip",
+      "label": "ZIP filenames",
+      "family": "service",
+      "kind": "crate",
+      "parent": "crates",
+      "path": "crates/virgil-zip",
+      "summary": "Keeps a ZIP's declared filename encoding for the import readers.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "infra",
+      "label": "Cloud infrastructure",
+      "family": "external",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "infra",
+      "summary": "The Pulumi program that declares each environment's Google Cloud project, network, database, keys, secrets and jobs; the services themselves are deployed by CI.",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "derived": { "source": "infra/Pulumi.yaml" }
+    },
+    {
+      "id": "packages",
+      "label": "TypeScript packages",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "packages",
+      "summary": "Shared TypeScript packages: the component library, design tokens, the Records schema, the daemon client, the document editor and HTML views.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-accounts",
+      "label": "Accounts",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/accounts",
+      "summary": "The portal's account logic: Clerk user events, Stripe billing and the entitlement an account holds.",
+      "refs": { "term": "term.portal" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-camera-effects",
+      "label": "Camera effects",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/camera-effects",
+      "summary": "WebGPU portrait matting, background blur and image replacement for the huddle camera.",
+      "tier": "device",
+      "refs": {
+        "term": "term.huddle",
+        "docs": ["docs/runbooks/huddle-camera-effects.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-db",
+      "label": "Portal data layer",
+      "family": "store",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/db",
+      "summary": "The portal's Prisma schema and queries: users, machines, device authorizations, memberships, subscriptions and webhooks.",
+      "refs": { "term": "term.portal" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-test-support",
+      "label": "@naos-intelligence/virgil-test-support",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/test-support",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-ui",
+      "label": "Component library",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/ui",
+      "summary": "Virgil's components: styled primitives, the chat floor (conversation, composer, timeline and huddle) and the docs floor, drawn alike by the desktop app and the guest web client.",
+      "tier": "device",
+      "refs": {
+        "term": "term.card",
+        "docs": ["docs/design-system/virgil-component-contract.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-atlas-viewer",
+      "label": "Atlas viewer",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-atlas-viewer",
+      "summary": "Draws an atlas bundle: each view's diagram, the view menu, selection, the detail panel, find and the brand colours.",
+      "refs": { "term": "term.atlas", "docs": ["docs/runbooks/atlas.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-constants",
+      "label": "Shared constants",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-constants",
+      "summary": "Environment, URL, auth and gate constants shared by the portal and the apps.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-daemon-client",
+      "label": "Daemon client",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-daemon-client",
+      "summary": "Generated TypeScript clients for the daemon's gRPC services, and browser codecs for the door's wire messages.",
+      "refs": { "term": "term.daemon" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-doc-editor",
+      "label": "Document editor",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-doc-editor",
+      "summary": "The page editor: markdown-first typing, a slash menu, conflict blocks and presence over the product's block schema.",
+      "refs": { "term": "term.page" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-doc-wasm",
+      "label": "Document engine package",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-doc-wasm",
+      "summary": "The WebAssembly build of the live-document engine, committed and verified so the web and the desktop run one implementation.",
+      "refs": { "term": "term.live-document" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-flame",
+      "label": "Flame",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-flame",
+      "summary": "Virgil's flame: its shape, palette, particles, shader and renderer.",
+      "refs": { "term": "term.hud" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-lexical-blocks",
+      "label": "Lexical blocks",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-lexical-blocks",
+      "summary": "The product's block types as Lexical nodes, with their theme and serialization, shared by the composer and the document editor.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-loro-html",
+      "label": "Page frame editor",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-loro-html",
+      "summary": "The editor inside a page's frame: Lexical over the page's element tree, sending batches to the daemon's page session, which holds the Loro document.",
+      "tier": "device",
+      "refs": { "term": "term.page" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-loro-lexical",
+      "label": "Lexical on the document engine",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-loro-lexical",
+      "summary": "Binds a Lexical editor to the live-document engine: both sync directions, the caret as a cursor and per-person undo.",
+      "refs": { "term": "term.live-document" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-observability",
+      "label": "Action registry",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-observability",
+      "summary": "The registry of user actions, the trace-context carrier and the action event the daemon accepts.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-presence-runtime",
+      "label": "Appearance runtime",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-presence-runtime",
+      "summary": "What Virgil's appearance means whatever draws it (the flame, a 3D model or another asset): activity, speech, assets and their renderer.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-schema",
+      "label": "Records schema",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-schema",
+      "summary": "The one source of the Records collections, from which the Rust, JSON Schema and TypeScript types are generated.",
+      "refs": {
+        "term": "term.records",
+        "rules": ["rule.records-generated-matches-schema"],
+        "docs": ["packages/virgil-schema/CONTRACT.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-tokens",
+      "label": "Design tokens",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-tokens",
+      "summary": "The only source of a value on a Virgil surface (colour, type, radius, shadow and motion), generated for CSS, views and the flame.",
+      "refs": { "docs": ["docs/design/tokens.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-view-host",
+      "label": "View host",
+      "family": "service",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-view-host",
+      "summary": "The host half of an HTML view's bridge: it answers a view frame's queries from a records source, with no Electron or React in it.",
+      "refs": { "term": "term.view", "docs": ["docs/runbooks/html-views.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "packages-virgil-views",
+      "label": "View files",
+      "family": "surface",
+      "kind": "package",
+      "parent": "packages",
+      "path": "packages/virgil-views",
+      "summary": "The files every HTML view is made of: system templates, the letterhead, the manifest schema, the bridge protocol and the in-frame SDK.",
+      "refs": {
+        "term": "term.letterhead",
+        "docs": ["docs/runbooks/html-views.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "prototypes",
+      "label": "Prototypes",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "prototypes",
+      "summary": "Experiments kept to measure a design before it is decided; nothing ships from here.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "prototypes-live-docs",
+      "label": "Live documents prototype",
+      "family": "service",
+      "kind": "directory",
+      "parent": "prototypes",
+      "path": "prototypes/live-docs",
+      "summary": "The prototype that measured live-document latency and commit load over a relay before the design was decided.",
+      "refs": { "term": "term.live-document" },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "prototypes-live-docs-client",
+      "label": "Live docs prototype client",
+      "family": "surface",
+      "kind": "package",
+      "parent": "prototypes-live-docs",
+      "path": "prototypes/live-docs/client",
+      "summary": "The prototype's browser client: transport, WebCrypto signing, a block editor and the metrics its harness reads.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "prototypes-live-docs-door",
+      "label": "Live docs prototype door",
+      "family": "service",
+      "kind": "crate",
+      "parent": "prototypes-live-docs",
+      "path": "prototypes/live-docs/door",
+      "summary": "The prototype's commit path over Postgres and an object store, publishing committed, refused and reset frames to its relay.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "tools",
+      "label": "Tools",
+      "family": "service",
+      "kind": "directory",
+      "parent": "repo",
+      "path": "tools",
+      "summary": "Virgil's agents, Cato and Messo, and its developer tools: the end-to-end harness, the lab, the work sim, the artifact kit and portal verification.",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "tools-alpha-recall-export",
+      "label": "Alpha recall export",
+      "family": "service",
+      "kind": "crate",
+      "parent": "tools",
+      "path": "tools/alpha-recall-export",
+      "summary": "Writes an alpha-era recall store out as plain rows for today's importer; a developer tool.",
+      "refs": { "docs": ["docs/runbooks/recall-alpha-port.md"] },
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "id": "tools-artifact-kit",
+      "label": "Artifact kit",
+      "family": "service",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/artifact-kit",
+      "summary": "The shared look of every artifact published from this repo: the stylesheet, the flame, and the spike and mock templates.",
+      "refs": { "docs": ["docs/runbooks/artifacts.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-cato",
+      "label": "Cato's code",
+      "family": "agent",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/cato",
+      "summary": "Cato's GitHub App token, its GitHub adapter, lane rules, batch integration and who-broke-it, run in Cato's own VM.",
+      "refs": { "term": "term.cato", "docs": ["tools/cato/README.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-e2e",
+      "label": "End-to-end harness",
+      "family": "service",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/e2e",
+      "summary": "Scripts that drive the real app and cell end to end, and the machine-wide registry of their instances and ports.",
+      "refs": {
+        "term": "term.party",
+        "docs": ["docs/runbooks/dev-experience.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-lab",
+      "label": "Local lab",
+      "family": "service",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/lab",
+      "summary": "Persistent local Virgil stacks and client profiles that agents explore through the app and the portal.",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-messo",
+      "label": "Messo's controller",
+      "family": "agent",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/messo",
+      "summary": "The rules Messo works under (priority, budgets, its work as Virgil tasks, decisions) and the boundary that ends every change at a draft pull request.",
+      "refs": { "term": "term.messo", "docs": ["docs/runbooks/messo.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-portal-verify",
+      "label": "Portal verification",
+      "family": "service",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/portal-verify",
+      "summary": "Proves a deployed portal works end to end on its real hostname.",
+      "refs": {
+        "term": "term.portal",
+        "docs": ["docs/runbooks/portal-verify.md"]
+      },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "tools-work-sim",
+      "label": "Work sim",
+      "family": "agent",
+      "kind": "package",
+      "parent": "tools",
+      "path": "tools/work-sim",
+      "summary": "Runs simulated people as agents on staging through whole rounds of work, filing the friction they meet.",
+      "refs": { "docs": ["docs/runbooks/e2e-test-accounts.md"] },
+      "derived": { "source": "package.json" }
+    },
+    {
+      "id": "infra-src-compute-act-as-serviceaccount-iam-member",
+      "label": "Act-as grants",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/act-as.ts",
+      "summary": "Lets the environment's deploy identity run each service as that service's own account, granted beside the account.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "derived": { "source": "infra/src/compute/act-as.ts" }
+    },
+    {
+      "id": "infra-src-compute-c2-content-audit-cloudrunv2-job",
+      "label": "c2 content audit job",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/c2-content-audit.ts",
+      "summary": "A one-shot job that counts, as aggregates only, what the old staging c2 cell still holds before it is removed.",
+      "tier": "cloud",
+      "refs": { "term": "term.cell" },
+      "derived": { "source": "infra/src/compute/c2-content-audit.ts" }
+    },
+    {
+      "id": "infra-src-compute-cell-wake-queue-cloudtasks-queue",
+      "label": "Cell wake queue",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cell-wake-queue.ts",
+      "summary": "The environment's Cloud Tasks queue every commit puts a wake on, so the worker and delivery drain when nobody is present.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.worker",
+        "docs": ["docs/runbooks/shipping-architecture.md"]
+      },
+      "derived": { "source": "infra/src/compute/cell-wake-queue.ts" }
+    },
+    {
+      "id": "infra-src-compute-cell-wake-queue-cloudtasks-queue-iam-member",
+      "label": "Wake queue enqueuers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cell-wake-queue.ts",
+      "summary": "Lets each cell's door, worker and delivery accounts and the portal's put wakes on the queue.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/cell-wake-queue.ts" }
+    },
+    {
+      "id": "infra-src-compute-cell-wake-queue-serviceaccount-account",
+      "label": "Wake tasks account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cell-wake-queue.ts",
+      "summary": "The identity a wake's token is minted for when Cloud Tasks calls a drain.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/cell-wake-queue.ts" }
+    },
+    {
+      "id": "infra-src-compute-cell-wake-queue-serviceaccount-iam-member",
+      "label": "Wake tasks account users",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cell-wake-queue.ts",
+      "summary": "Lets the cell's accounts mint tokens as the wake tasks account.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/cell-wake-queue.ts" }
+    },
+    {
+      "id": "infra-src-compute-cloudrun-artifactregistry-repository",
+      "label": "Image registry",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cloudrun.ts",
+      "summary": "The environment's container registry that the cell and comms relay images are pushed to by digest.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "derived": { "source": "infra/src/compute/cloudrun.ts" }
+    },
+    {
+      "id": "infra-src-compute-cloudrun-secretmanager-secret",
+      "label": "Cell secrets",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cloudrun.ts",
+      "summary": "The cell's secrets (the portal's public signing key, Cloudflare Realtime and TURN, R2 and the GIF key), created empty and filled from 1Password.",
+      "tier": "cloud",
+      "refs": { "term": "term.cell", "docs": ["docs/runbooks/dev-secrets.md"] },
+      "derived": { "source": "infra/src/compute/cloudrun.ts" }
+    },
+    {
+      "id": "infra-src-compute-cloudrun-secretmanager-secret-iam-member",
+      "label": "Cell secret readers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/cloudrun.ts",
+      "summary": "Lets the door and the worker read the cell's secrets.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/cloudrun.ts" }
+    },
+    {
+      "id": "infra-src-compute-document-maintenance-kms-crypto-key",
+      "label": "Document maintenance key",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/document-maintenance.ts",
+      "summary": "The asymmetric Cloud KMS key document grants are wrapped to: the door may read its public key and only the worker may decrypt, to compact documents.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.live-document",
+        "docs": ["docs/runbooks/documents-catalog.md"]
+      },
+      "derived": { "source": "infra/src/compute/document-maintenance.ts" }
+    },
+    {
+      "id": "infra-src-compute-document-maintenance-kms-crypto-key-iam-member",
+      "label": "Document key grants",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/document-maintenance.ts",
+      "summary": "Gives the door and the worker the public key, and the worker alone the right to decrypt.",
+      "tier": "cloud",
+      "refs": { "docs": ["planning/encryption/DECISION.md"] },
+      "derived": { "source": "infra/src/compute/document-maintenance.ts" }
+    },
+    {
+      "id": "infra-src-compute-document-maintenance-kms-key-ring",
+      "label": "Documents key ring",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/document-maintenance.ts",
+      "summary": "The Cloud KMS key ring that holds the document maintenance key.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/document-maintenance.ts" }
+    },
+    {
+      "id": "infra-src-compute-document-maintenance-projects-iam-audit-config",
+      "label": "KMS read audit",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/document-maintenance.ts",
+      "summary": "Logs every data read of Cloud KMS in the project, so each document key unwrap is on record.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/document-maintenance.ts" }
+    },
+    {
+      "id": "infra-src-compute-grants-cloudrunv2-job",
+      "label": "Database grants job",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/grants.ts",
+      "summary": "Runs the role model as the bootstrap login to give the door, worker, delivery and portal logins their privileges, which IAM sign-in cannot.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/storage-v2-postgres.md"] },
+      "derived": { "source": "infra/src/compute/grants.ts" }
+    },
+    {
+      "id": "infra-src-compute-grants-secretmanager-secret",
+      "label": "Bootstrap database password",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/grants.ts",
+      "summary": "The one administrative database password, kept in Secret Manager for the grants job.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/grants.ts" }
+    },
+    {
+      "id": "infra-src-compute-grants-secretmanager-secret-iam-member",
+      "label": "Bootstrap password reader",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/grants.ts",
+      "summary": "Lets the grants job read the bootstrap password.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/grants.ts" }
+    },
+    {
+      "id": "infra-src-compute-grants-serviceaccount-account",
+      "label": "Grants job account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/grants.ts",
+      "summary": "The identity the database grants job runs as.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/grants.ts" }
+    },
+    {
+      "id": "infra-src-compute-linear-kms-crypto-key",
+      "label": "Linear token key",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/linear.ts",
+      "summary": "The Cloud KMS key that seals each group's Linear OAuth tokens in the portal's database.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/linear-tasks.md"] },
+      "derived": { "source": "infra/src/compute/linear.ts" }
+    },
+    {
+      "id": "infra-src-compute-linear-kms-crypto-key-iam-member",
+      "label": "Linear key users",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/linear.ts",
+      "summary": "Lets the portal seal Linear tokens with the key and the worker open and re-seal them.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/linear.ts" }
+    },
+    {
+      "id": "infra-src-compute-linear-kms-key-ring",
+      "label": "Linear key ring",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/linear.ts",
+      "summary": "The Cloud KMS key ring that holds the Linear token key.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/linear.ts" }
+    },
+    {
+      "id": "infra-src-compute-linear-secretmanager-secret",
+      "label": "Linear secrets",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/linear.ts",
+      "summary": "The Linear OAuth app's client id and secret and its webhook secret.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/linear-webhook.md"] },
+      "derived": { "source": "infra/src/compute/linear.ts" }
+    },
+    {
+      "id": "infra-src-compute-linear-secretmanager-secret-iam-member",
+      "label": "Linear secret readers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/linear.ts",
+      "summary": "Lets the services that need them read the Linear secrets.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/linear.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-copy-cloudrunv2-job",
+      "label": "Portal copy job",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal-copy.ts",
+      "summary": "A one-shot job that moved the portal's database between Railway and Cloud SQL during the cut and proves both sides identical.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/railway.md"] },
+      "derived": { "source": "infra/src/compute/portal-copy.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-copy-secretmanager-secret",
+      "label": "Portal copy source",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal-copy.ts",
+      "summary": "The connection string of the other side the portal copy job reads.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal-copy.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-copy-secretmanager-secret-iam-member",
+      "label": "Portal copy source reader",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal-copy.ts",
+      "summary": "Lets the portal copy job read its source connection.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal-copy.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-artifactregistry-repository",
+      "label": "Portal image registry",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The container registry the portal's images are pushed to.",
+      "tier": "cloud",
+      "refs": { "term": "term.portal" },
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-certificatemanager-certificate",
+      "label": "Portal certificate",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The Google-managed TLS certificate for the portal's hostnames, validated by DNS so Cloudflare can keep proxying them.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-certificatemanager-certificate-map",
+      "label": "Portal certificate map",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Maps the portal's hostnames to their certificate on the load balancer.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-certificatemanager-certificate-map-entry",
+      "label": "Portal certificate map entries",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "One entry per portal hostname in the certificate map.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-certificatemanager-dns-authorization",
+      "label": "Portal DNS authorization",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The DNS record that proves the portal's domain for its managed certificate.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-cloudrunv2-job",
+      "label": "Portal migrate job",
+      "family": "service",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Runs the portal's database migrations before a deploy.",
+      "tier": "cloud",
+      "refs": { "term": "term.portal" },
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-backend-service",
+      "label": "Portal load balancer backend",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The load balancer's backend that sends portal traffic to its Cloud Run service.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-global-address",
+      "label": "Portal address",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The portal load balancer's global IP address, which Cloudflare proxies to.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-global-forwarding-rule",
+      "label": "Portal front door",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The forwarding rule that takes the portal's HTTPS traffic at its address.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-region-network-endpoint-group",
+      "label": "Portal serverless endpoint",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The serverless endpoint group that points the load balancer at the portal's Cloud Run service.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-target-https-proxy",
+      "label": "Portal HTTPS proxy",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Ends TLS for the portal with its certificate map.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-compute-url-map",
+      "label": "Portal URL map",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Routes each portal hostname and path to its backend.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-projects-iam-member",
+      "label": "Portal project roles",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Lets the portal's account connect and sign in to Cloud SQL, and nothing more.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-secretmanager-secret",
+      "label": "Portal secrets",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The portal's secrets (Clerk, Stripe, its machine identity signing key and the cell enrolment secret), created empty and filled from 1Password.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.portal",
+        "docs": ["docs/runbooks/dev-secrets.md"]
+      },
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-secretmanager-secret-iam-member",
+      "label": "Portal secret readers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "Lets the portal read its secrets.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-serviceaccount-account",
+      "label": "Portal account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The identity the portal runs and signs in to its database as.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-sql-database",
+      "label": "Portal database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The portal's database on the environment's Cloud SQL instance: accounts, devices, group memberships and billing.",
+      "tier": "cloud",
+      "refs": { "term": "term.portal" },
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-portal-sql-user",
+      "label": "Portal database login",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/portal.ts",
+      "summary": "The portal account's IAM login to its database.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/portal.ts" }
+    },
+    {
+      "id": "infra-src-compute-push-secretmanager-secret",
+      "label": "Push secrets",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/push.ts",
+      "summary": "The push service's secrets: token encryption and HMAC keys, the enrolment secret and the APNs credentials.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.delivery",
+        "docs": [
+          "docs/runbooks/push-delivery.md",
+          "docs/runbooks/apns-credentials.md"
+        ]
+      },
+      "derived": { "source": "infra/src/compute/push.ts" }
+    },
+    {
+      "id": "infra-src-compute-push-secretmanager-secret-iam-member",
+      "label": "Push secret readers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/push.ts",
+      "summary": "Lets delivery and the portal read the push secrets they use.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/push.ts" }
+    },
+    {
+      "id": "infra-src-compute-relay-secretmanager-secret-iam-member",
+      "label": "Relay key reader",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/relay.ts",
+      "summary": "Lets the comms relay read the portal's public signing key, its one secret.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/relay.ts" }
+    },
+    {
+      "id": "infra-src-compute-relay-serviceaccount-account",
+      "label": "Relay account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/compute/relay.ts",
+      "summary": "The identity the comms webhook relay runs as.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/compute/relay.ts" }
+    },
+    {
+      "id": "infra-src-database-cloudsql-projects-iam-member",
+      "label": "Cell database roles",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "Lets the cell's door, worker and delivery accounts connect and sign in to Cloud SQL.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/database/cloudsql.ts" }
+    },
+    {
+      "id": "infra-src-database-cloudsql-serviceaccount-account",
+      "label": "Cell accounts",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "The identities of the cell's door, worker and delivery, each its own database principal.",
+      "tier": "cloud",
+      "refs": { "term": "term.cell" },
+      "derived": { "source": "infra/src/database/cloudsql.ts" }
+    },
+    {
+      "id": "infra-src-database-cloudsql-sql-database",
+      "label": "Cell database",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "One cell's database on the Cloud SQL instance, where its committed records and outbox live.",
+      "tier": "cloud",
+      "refs": {
+        "term": "term.cell",
+        "docs": ["docs/runbooks/storage-v2-postgres.md"]
+      },
+      "derived": { "source": "infra/src/database/cloudsql.ts" }
+    },
+    {
+      "id": "infra-src-database-cloudsql-sql-database-instance",
+      "label": "Cloud SQL instance",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "The environment's PostgreSQL instance on a private address, holding the cell and portal databases.",
+      "tier": "cloud",
+      "refs": {
+        "docs": [
+          "docs/runbooks/storage-v2-postgres.md",
+          "docs/runbooks/infra-pipeline.md"
+        ]
+      },
+      "derived": { "source": "infra/src/database/cloudsql.ts" }
+    },
+    {
+      "id": "infra-src-database-cloudsql-sql-user",
+      "label": "Cell database logins",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/database/cloudsql.ts",
+      "summary": "The IAM logins of the cell's door, worker and delivery, so none holds a password.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/database/cloudsql.ts" }
+    },
+    {
+      "id": "infra-src-hierarchy-organizations-project",
+      "label": "Environment project",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/hierarchy.ts",
+      "summary": "The Google Cloud project each environment, staging or production, lives in.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "derived": { "source": "infra/src/hierarchy.ts" }
+    },
+    {
+      "id": "infra-src-hierarchy-projects-service",
+      "label": "Enabled cloud APIs",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/hierarchy.ts",
+      "summary": "The Google Cloud APIs each environment's project turns on.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/hierarchy.ts" }
+    },
+    {
+      "id": "infra-src-network-compute-global-address",
+      "label": "Private services range",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/network.ts",
+      "summary": "The address range reserved for Google's side of the private peering Cloud SQL lives behind.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/network.ts" }
+    },
+    {
+      "id": "infra-src-network-compute-network",
+      "label": "Private network",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/network.ts",
+      "summary": "The environment's VPC: Cloud SQL has no public address, so reaching it means being inside this network.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/infra-pipeline.md"] },
+      "derived": { "source": "infra/src/network.ts" }
+    },
+    {
+      "id": "infra-src-network-compute-subnetwork",
+      "label": "Private subnet",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/network.ts",
+      "summary": "A subnet reserved for the door's compute on the private network; nothing runs in it today.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/network.ts" }
+    },
+    {
+      "id": "infra-src-network-servicenetworking-connection",
+      "label": "Private services peering",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/network.ts",
+      "summary": "The peering that makes Google's Cloud SQL network routable from the private network.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/network.ts" }
+    },
+    {
+      "id": "infra-src-observability-projects-iam-member",
+      "label": "Telemetry writers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/observability.ts",
+      "summary": "Lets the hosted services write traces and metrics to Cloud's telemetry API; daemons upload through the door instead.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/observability.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-iam-workload-identity-pool",
+      "label": "PR environment identity pool",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "The GitHub identity federation the PR environment controller signs in through, with no key.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-iam-workload-identity-pool-provider",
+      "label": "PR environment identity provider",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Accepts this repository's GitHub workflow tokens for the PR environment controller.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-projects-iam-member",
+      "label": "PR environment roles",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Lets the PR environment controller read Cloud Run and IAM and add and read PR secrets in the staging project.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-secretmanager-secret",
+      "label": "PR edge keys",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Each PR slot's edge publishing key.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-secretmanager-secret-iam-member",
+      "label": "PR edge key readers",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Lets each PR slot read its edge key.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-serviceaccount-account",
+      "label": "PR environment account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "The identity the PR environment controller runs as.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-serviceaccount-iam-member",
+      "label": "PR environment federation",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Lets GitHub workflows act as the PR environment account.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-storage-bucket",
+      "label": "PR environment inventory",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "The bucket holding which PR environments should exist and what each one observed.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/pr-environments.md"] },
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-pr-environments-storage-bucket-iam-member",
+      "label": "PR inventory access",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/pr-environments.ts",
+      "summary": "Who may write and read the PR environment inventory.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/pr-environments.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-iam-workload-identity-pool",
+      "label": "Fixture identity pool",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "The GitHub identity federation CI reads and publishes SQLite fixtures through.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/sqlite-migrations.md"] },
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-iam-workload-identity-pool-provider",
+      "label": "Fixture identity provider",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "Accepts this repository's CI workflow tokens for the fixture bucket.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-projects-iam-member",
+      "label": "Fixture provisioner roles",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "Lets the staging stack create the fixture bucket and its identity pool.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-projects-service",
+      "label": "Fixture cloud APIs",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "The APIs the fixture bucket and its federation need.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-serviceaccount-account",
+      "label": "Fixture accounts",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "The identities CI reads and publishes fixtures as.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-serviceaccount-iam-member",
+      "label": "Fixture federation",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "Lets CI workflows act as the fixture accounts.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-storage-bucket",
+      "label": "SQLite fixtures",
+      "family": "store",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "The private bucket of synthetic historical SQLite replicas the migration tests open; never product data.",
+      "tier": "cloud",
+      "refs": { "docs": ["docs/runbooks/sqlite-migrations.md"] },
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-sqlite-fixtures-storage-bucket-iam-member",
+      "label": "Fixture bucket access",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/sqlite-fixtures.ts",
+      "summary": "Who may read and publish SQLite fixtures.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/sqlite-fixtures.ts" }
+    },
+    {
+      "id": "infra-src-studio-reader-projects-iam-member",
+      "label": "Studio reader log access",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/studio-reader.ts",
+      "summary": "Lets the Studio machine's read-only identity read staging logs.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/studio-reader.ts" }
+    },
+    {
+      "id": "infra-src-studio-reader-serviceaccount-account",
+      "label": "Studio reader account",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/studio-reader.ts",
+      "summary": "A read-only staging identity for the Studio machine, whose key is minted by hand.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/studio-reader.ts" }
+    },
+    {
+      "id": "infra-src-studio-reader-storage-bucket-iam-member",
+      "label": "Studio reader bucket access",
+      "family": "external",
+      "kind": "resource",
+      "parent": "infra",
+      "path": "infra/src/studio-reader.ts",
+      "summary": "Lets the Studio reader read the SQLite fixtures and the PR inventory.",
+      "tier": "cloud",
+      "derived": { "source": "infra/src/studio-reader.ts" }
+    },
+    {
+      "id": "part-apps-virgil-ios",
+      "label": "@naos-intelligence/virgil-ios",
+      "family": "surface",
+      "kind": "surface",
+      "path": "apps/virgil-ios",
+      "tier": "device",
+      "derived": { "source": "apps/virgil-ios/src-tauri/tauri.conf.json" }
+    },
+    {
+      "id": "part-crates-agent-comms-relay",
+      "label": "agent-comms-relay",
+      "family": "service",
+      "kind": "service",
+      "path": "crates/agent-comms/relay",
+      "tier": "cloud",
+      "derived": { "source": "crates/agent-comms/relay/Dockerfile" }
+    },
+    {
+      "id": "external-stripe",
+      "label": "Stripe",
+      "family": "external",
+      "kind": "external",
+      "tier": "external",
+      "derived": { "source": "packages/accounts/package.json" }
+    },
+    {
+      "id": "store-postgres",
+      "label": "Postgres",
+      "family": "store",
+      "kind": "store",
+      "derived": { "source": "packages/db/package.json" }
+    },
+    {
+      "id": "store-sqlite",
+      "label": "SQLite",
+      "family": "store",
+      "kind": "store",
+      "derived": { "source": "crates/brand-voice/corpus/Cargo.toml" }
+    }
+  ],
+  "edges": [
+    { "from": "desktop-app", "to": "daemon", "kind": "calls", "label": "gRPC" },
+    { "from": "hud", "to": "daemon", "kind": "calls" },
+    { "from": "clipper", "to": "daemon", "kind": "calls", "label": "loopback" },
+    { "from": "portal", "to": "door", "kind": "calls" },
+    {
+      "from": "daemon",
+      "to": "door",
+      "kind": "calls",
+      "label": "request/answer"
+    },
+    { "from": "daemon", "to": "replica", "kind": "writes" },
+    { "from": "daemon", "to": "providers", "kind": "calls", "label": "comms" },
+    { "from": "door", "to": "postgres", "kind": "writes", "label": "commit" },
+    { "from": "door", "to": "kms", "kind": "reads", "label": "public key" },
+    {
+      "from": "door",
+      "to": "edge",
+      "kind": "publishes",
+      "label": "fast publish"
+    },
+    { "from": "worker", "to": "postgres", "kind": "reads", "label": "outbox" },
+    { "from": "worker", "to": "edge", "kind": "publishes", "label": "outbox" },
+    {
+      "from": "delivery",
+      "to": "providers",
+      "kind": "delivers",
+      "label": "push"
+    },
+    { "from": "edge", "to": "daemon", "kind": "delivers", "label": "live" },
+    {
+      "from": "door",
+      "to": "infra-src-database-cloudsql-sql-database-instance",
+      "kind": "writes"
+    },
+    {
+      "from": "worker",
+      "to": "infra-src-database-cloudsql-sql-database-instance",
+      "kind": "reads"
+    },
+    {
+      "from": "door",
+      "to": "infra-src-compute-cell-wake-queue-cloudtasks-queue",
+      "kind": "publishes",
+      "label": "wake"
+    },
+    {
+      "from": "infra-src-compute-cell-wake-queue-cloudtasks-queue",
+      "to": "worker",
+      "kind": "delivers",
+      "label": "drain"
+    },
+    {
+      "from": "door",
+      "to": "infra-src-compute-document-maintenance-kms-crypto-key",
+      "kind": "reads"
+    },
+    {
+      "from": "infra-src-compute-portal-compute-global-forwarding-rule",
+      "to": "portal",
+      "kind": "delivers",
+      "label": "https"
+    },
+    {
+      "from": "infra-src-compute-grants-cloudrunv2-job",
+      "to": "infra-src-database-cloudsql-sql-database-instance",
+      "kind": "writes",
+      "label": "roles"
+    },
+    {
+      "from": "desktop-app",
+      "to": "cloudflare-realtime",
+      "kind": "calls",
+      "label": "WebRTC media"
+    },
+    {
+      "from": "door",
+      "to": "cloudflare-realtime",
+      "kind": "calls",
+      "label": "sessions and TURN"
+    },
+    { "from": "worker", "to": "kms", "kind": "reads", "label": "decrypt" },
+    {
+      "from": "daemon",
+      "to": "portal",
+      "kind": "calls",
+      "label": "device sign-in"
+    },
+    {
+      "from": "portal",
+      "to": "clerk",
+      "kind": "calls",
+      "label": "browser sign-in"
+    },
+    {
+      "from": "portal",
+      "to": "infra-src-compute-portal-sql-database",
+      "kind": "writes",
+      "label": "Prisma"
+    },
+    { "from": "cato", "to": "ci", "kind": "calls", "label": "batch run" },
+    {
+      "from": "deploy-door",
+      "to": "edge",
+      "kind": "deploys",
+      "label": "first"
+    },
+    { "from": "deploy-door", "to": "door", "kind": "deploys" },
+    { "from": "deploy-door", "to": "worker", "kind": "deploys" },
+    { "from": "deploy-door", "to": "delivery", "kind": "deploys" },
+    {
+      "from": "deploy-door",
+      "to": "infra-src-compute-cloudrun-artifactregistry-repository",
+      "kind": "writes",
+      "label": "image"
+    },
+    {
+      "from": "production-release",
+      "to": "infra",
+      "kind": "deploys",
+      "label": "infra.yml"
+    },
+    {
+      "from": "daemon",
+      "to": "replica",
+      "kind": "reads",
+      "label": "answers reads"
+    },
+    {
+      "from": "daemon",
+      "to": "crates-virgil-recall-index",
+      "kind": "writes",
+      "label": "recall follower"
+    },
+    {
+      "from": "daemon",
+      "to": "crates-virgil-recall-index",
+      "kind": "reads",
+      "label": "recall search"
+    },
+    {
+      "from": "daemon",
+      "to": "crates-naos-secure-store",
+      "kind": "writes",
+      "label": "token and key"
+    },
+    {
+      "from": "daemon",
+      "to": "crates-naos-secure-store",
+      "kind": "reads",
+      "label": "token and key"
+    },
+    {
+      "from": "portal",
+      "to": "infra-src-compute-portal-sql-database",
+      "kind": "reads",
+      "label": "Prisma"
+    },
+    {
+      "from": "daemon",
+      "to": "blobs",
+      "kind": "writes",
+      "label": "attachments"
+    },
+    {
+      "from": "daemon",
+      "to": "blobs",
+      "kind": "reads",
+      "label": "attachments"
+    },
+    { "from": "door", "to": "blobs", "kind": "writes", "label": "bot media" },
+    { "from": "door", "to": "blobs", "kind": "reads", "label": "bot media" },
+    { "from": "worker", "to": "blobs", "kind": "writes", "label": "erases" },
+    {
+      "from": "apps-portal",
+      "to": "packages-accounts",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-db",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-virgil-constants",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-virgil-flame",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-virgil-observability",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-virgil-presence-runtime",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-portal",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-camera-effects",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-atlas-viewer",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-constants",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-daemon-client",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-doc-editor",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-flame",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-loro-html",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-observability",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-presence-runtime",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-schema",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-view-host",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-app",
+      "to": "packages-virgil-views",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-ios",
+      "to": "packages-virgil-schema",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-ios",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-replica-sqlite",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ios-src-tauri",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "apps-virgil-ui",
+      "to": "clerk",
+      "kind": "calls",
+      "label": "@clerk/react",
+      "derived": { "source": "apps/virgil-ui/package.json" }
+    },
+    {
+      "from": "apps-virgil-ui",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-ui",
+      "to": "packages-virgil-constants",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-ui",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-web",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-web",
+      "to": "packages-virgil-daemon-client",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "apps-virgil-web",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "crates-acp",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-api",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-api",
+      "to": "crates-agent-comms-policy",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-api",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-discord",
+      "to": "crates-agent-comms-api",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-discord",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-discord",
+      "to": "crates-agent-comms-runtime-support",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-discord",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-relay",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-relay",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-relay",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-runtime-support",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-runtime-support",
+      "to": "crates-agent-comms-spool",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-runtime-support",
+      "to": "crates-agent-comms-state",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-runtime-support",
+      "to": "crates-naos-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-runtime-support",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-agent-comms-api",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-agent-comms-policy",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-agent-comms-runtime-support",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-naos-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-service",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-slack",
+      "to": "crates-agent-comms-api",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-slack",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-slack",
+      "to": "crates-agent-comms-runtime-support",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-slack",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-spool",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-spool",
+      "to": "crates-agent-comms-state",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-spool",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-state",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-telegram",
+      "to": "crates-agent-comms-api",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-telegram",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-telegram",
+      "to": "crates-agent-comms-runtime-support",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-telegram",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-comms-test-harness",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-recall-ingest",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-agent-recall-ingest",
+      "to": "crates-virgil-zip",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-cli",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-cli",
+      "to": "crates-brand-voice-train",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-corpus",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-corpus",
+      "to": "store-sqlite",
+      "kind": "reads",
+      "label": "sqlx",
+      "derived": { "source": "crates/brand-voice/corpus/Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-corpus",
+      "to": "store-sqlite",
+      "kind": "writes",
+      "label": "sqlx",
+      "derived": { "source": "crates/brand-voice/corpus/Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-synth",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-brand-voice-train",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-media",
+      "to": "crates-audio",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-media",
+      "to": "crates-stt",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-desktop",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-meeting-data",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-meeting-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-prep",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-qa",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-witness",
+      "to": "crates-media",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-meeting-witness",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-recall-meetings-e2e",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-recall-meetings-e2e",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-recall-meetings-e2e",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-source-capture",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-source-capture",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-source-capture",
+      "to": "crates-virgil-web-content",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-stt",
+      "to": "crates-audio",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-acp",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-integrations-caldav",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-image-privacy",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-installer",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-agent-runtime",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-calendar",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-companion-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attention-service",
+      "to": "crates-virgil-meeting-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attest",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attest",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-attest",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-authority-pg",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-authority-pg",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-authority-pg",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-authority-pg",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-authority-pg",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-bench",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-bench",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-brief",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-integrations-caldav",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-naos-secure-store",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-calendar",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cato-archive",
+      "to": "crates-virgil-sealed",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cell-control",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cell-control",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cell-control",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-atlas",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-evidence",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-import-format",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-import-slack",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-installer",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-cli",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-clipper-service",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-clipper-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-clipper-service",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-source-capture",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-comms-service",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-companion-service",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-conformance",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-conformance",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-conformance",
+      "to": "crates-virgil-replica-sqlite",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-conformance",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-conformance",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-acp",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-api",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-discord",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-runtime-support",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-secrets",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-slack",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-state",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-comms-telegram",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-brand-voice-corpus",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-integrations-caldav",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "crates-virgil-product",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "store-sqlite",
+      "kind": "reads",
+      "label": "sqlx",
+      "derived": { "source": "crates/virgil-control-plane/Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-control-plane",
+      "to": "store-sqlite",
+      "kind": "writes",
+      "label": "sqlx",
+      "derived": { "source": "crates/virgil-control-plane/Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-core",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-core",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-corpus",
+      "to": "crates-virgil-authority-pg",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-corpus",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-corpus",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-naos-secure-store",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-installer",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-replica-sqlite",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-daemon-host",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-acp",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-agent-comms-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-audio",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-integrations-caldav",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-media",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-meeting-witness",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-naos-secure-store",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-source-capture",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-stt",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-atlas",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-attention-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-brief",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-calendar",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-clipper-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-comms-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-companion-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-doc-html",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-document-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-embedding",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-installer",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-link-previews",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-llm-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-meeting-data",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-meeting-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-message-links",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-prep",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-replica-sqlite",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-views-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-desktop",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-install-config",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-auth",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-attest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-image-privacy",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-sealed",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-device-sync",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-doc-html",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-doc-wasm",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-doc-html",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-sealed",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-document-service",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-embedding",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-evidence",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-fake-portal",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-import-format",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-import-slack",
+      "to": "crates-virgil-import-format",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-import-slack",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-import-slack",
+      "to": "crates-virgil-zip",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-message-links",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-link-previews",
+      "to": "crates-virgil-web-content",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-media",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-stt",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-virgil-embedding",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-llm-host",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-data",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-acp",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-audio",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-media",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-meeting-witness",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-stt",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-calendar",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-llm-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-meeting-data",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-state-bundles",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-meeting-service",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-message-links",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-message-links",
+      "to": "crates-virgil-message-document",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-meeting",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-calendar",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-meeting-data",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-prep",
+      "to": "crates-virgil-meeting-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-embedding",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-llm-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-meeting-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-recall-index",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-recall-service",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-bench",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-index",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-index",
+      "to": "store-sqlite",
+      "kind": "reads",
+      "label": "sqlx",
+      "derived": { "source": "crates/virgil-recall-index/Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-index",
+      "to": "store-sqlite",
+      "kind": "writes",
+      "label": "sqlx",
+      "derived": { "source": "crates/virgil-recall-index/Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-agent-recall-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-agent-recall-ingest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-source-capture",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-context-query",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-embedding",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-meeting-data",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-recall-index",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-replica-sqlite",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-recall-service",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-replica-sqlite",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-replica-sqlite",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-sealed",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-attest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-authority-pg",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-cell-control",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-image-privacy",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-message-links",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-sealed",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-telemetry",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-serve",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-state-bundles",
+      "to": "crates-brand-voice-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-state-bundles",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-state-bundles",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-state-bundles",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-storage",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-storage",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-attest",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-machine-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-test-support",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-core",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-agent-runtime",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-control-plane",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-daemon-host",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-device-auth",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-device-sync",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-doc-html",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-sealed",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-views-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-views-service",
+      "to": "crates-virgil-wire",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-wire",
+      "to": "crates-virgil-core",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-wire",
+      "to": "crates-virgil-daemon-proto",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "crates-virgil-wire",
+      "to": "crates-virgil-storage",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "packages-accounts",
+      "to": "clerk",
+      "kind": "calls",
+      "label": "@clerk/backend",
+      "derived": { "source": "packages/accounts/package.json" }
+    },
+    {
+      "from": "packages-accounts",
+      "to": "external-stripe",
+      "kind": "calls",
+      "label": "stripe",
+      "derived": { "source": "packages/accounts/package.json" }
+    },
+    {
+      "from": "packages-accounts",
+      "to": "packages-db",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-accounts",
+      "to": "packages-virgil-constants",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-db",
+      "to": "packages-virgil-observability",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-db",
+      "to": "store-postgres",
+      "kind": "reads",
+      "label": "@prisma/client, pg",
+      "derived": { "source": "packages/db/package.json" }
+    },
+    {
+      "from": "packages-db",
+      "to": "store-postgres",
+      "kind": "writes",
+      "label": "@prisma/client, pg",
+      "derived": { "source": "packages/db/package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-constants",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-daemon-client",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-doc-editor",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-doc-wasm",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-loro-html",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-loro-lexical",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-observability",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-ui",
+      "to": "packages-virgil-schema",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-atlas-viewer",
+      "to": "packages-ui",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-atlas-viewer",
+      "to": "packages-virgil-views",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-doc-editor",
+      "to": "packages-virgil-lexical-blocks",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-flame",
+      "to": "packages-virgil-tokens",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-loro-html",
+      "to": "packages-virgil-daemon-client",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-loro-html",
+      "to": "packages-virgil-views",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-loro-lexical",
+      "to": "packages-virgil-doc-wasm",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-loro-lexical",
+      "to": "packages-virgil-lexical-blocks",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-presence-runtime",
+      "to": "packages-virgil-flame",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-view-host",
+      "to": "packages-virgil-daemon-client",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-view-host",
+      "to": "packages-virgil-schema",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-view-host",
+      "to": "packages-virgil-views",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "packages-virgil-views",
+      "to": "packages-virgil-schema",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "prototypes-live-docs-client",
+      "to": "packages-virgil-doc-editor",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "prototypes-live-docs-client",
+      "to": "packages-virgil-doc-wasm",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "prototypes-live-docs-client",
+      "to": "packages-virgil-loro-lexical",
+      "kind": "calls",
+      "derived": { "source": "package.json" }
+    },
+    {
+      "from": "prototypes-live-docs-door",
+      "to": "crates-virgil-doc",
+      "kind": "calls",
+      "derived": { "source": "Cargo.toml" }
+    },
+    {
+      "from": "prototypes-live-docs-door",
+      "to": "store-postgres",
+      "kind": "reads",
+      "label": "sqlx",
+      "derived": { "source": "prototypes/live-docs/door/Cargo.toml" }
+    },
+    {
+      "from": "prototypes-live-docs-door",
+      "to": "store-postgres",
+      "kind": "writes",
+      "label": "sqlx",
+      "derived": { "source": "prototypes/live-docs/door/Cargo.toml" }
+    }
+  ],
+  "views": [],
+  "records": {
+    "file": "packages/virgil-schema/src/generated/schemas.json",
+    "areas": [
+      {
+        "id": "messages",
+        "title": "Messages and channels",
+        "collections": [
+          "message",
+          "message_link",
+          "message_link_state",
+          "channel",
+          "channel_member",
+          "channel_state",
+          "channel_summary",
+          "channel_match",
+          "reaction",
+          "custom_emoji",
+          "emoji_*",
+          "attachment",
+          "draft"
+        ]
+      },
+      {
+        "id": "threads",
+        "title": "Threads",
+        "collections": ["thread_state", "thread_summary"]
+      },
+      {
+        "id": "companions",
+        "title": "Companions and the Virgil DM",
+        "collections": [
+          "session",
+          "turn",
+          "attempt",
+          "episode",
+          "conversation_scope",
+          "room_host"
+        ]
+      },
+      {
+        "id": "tasks",
+        "title": "Tasks and goals",
+        "collections": [
+          "task",
+          "epic",
+          "goal",
+          "run",
+          "label",
+          "output",
+          "decision",
+          "question",
+          "beads_import",
+          "beads_workspace",
+          "tracker_connection"
+        ]
+      },
+      {
+        "id": "reviews",
+        "title": "Plans and reviews",
+        "collections": [
+          "planning_artifact",
+          "artifact_version",
+          "review",
+          "review_comment",
+          "review_verdict"
+        ]
+      },
+      {
+        "id": "documents",
+        "title": "Documents and pages",
+        "collections": [
+          "doc_*",
+          "note_document",
+          "note_revision",
+          "page_comment",
+          "page_template",
+          "page_template_version"
+        ]
+      },
+      {
+        "id": "views",
+        "title": "Views and Home",
+        "collections": [
+          "view",
+          "view_configuration",
+          "view_state",
+          "renderer",
+          "dashboard",
+          "workspace"
+        ]
+      },
+      {
+        "id": "notifications",
+        "title": "Notifications and feed",
+        "collections": [
+          "notification",
+          "notification_preference",
+          "notification_state",
+          "feed_item",
+          "feed_signal",
+          "follow",
+          "subscription"
+        ]
+      },
+      { "id": "bots", "title": "Bots", "collections": ["bot_*"] },
+      {
+        "id": "recall",
+        "title": "Recall",
+        "collections": [
+          "resource",
+          "resource_media",
+          "resource_version",
+          "representation",
+          "memory",
+          "entity",
+          "relation_assertion",
+          "profile_assertion",
+          "evidence_fragment",
+          "retrieval_feedback",
+          "context_lens",
+          "context_lens_membership",
+          "context_receipt",
+          "receipt_evidence",
+          "ingest_run",
+          "recommendation"
+        ]
+      },
+      {
+        "id": "actions",
+        "title": "Actions and approvals",
+        "collections": [
+          "action*",
+          "command",
+          "approval",
+          "effect_approval",
+          "processing_grant",
+          "processing_grant_use"
+        ]
+      },
+      {
+        "id": "lessons",
+        "title": "Lessons",
+        "collections": ["lesson", "personal_lesson"]
+      },
+      {
+        "id": "rulebook",
+        "title": "Rulebook",
+        "collections": [
+          "rulebook",
+          "rulebook_marker",
+          "personal_rulebook",
+          "personal_rulebook_marker"
+        ]
+      },
+      {
+        "id": "events",
+        "title": "Events and receipts",
+        "collections": [
+          "event_subscription",
+          "deletion_receipt",
+          "publication_receipt"
+        ]
+      },
+      { "id": "huddles", "title": "Huddles", "collections": ["huddle_*"] },
+      {
+        "id": "identity",
+        "title": "Identity, groups and keys",
+        "collections": [
+          "principal",
+          "principal_status",
+          "status_preset",
+          "status_plan",
+          "device",
+          "device_key",
+          "device_key_wrap",
+          "group",
+          "group_key_wrap",
+          "key_epoch",
+          "membership",
+          "invite",
+          "sphere_grant",
+          "repository",
+          "repository_binding"
+        ]
+      }
+    ]
+  }
+}

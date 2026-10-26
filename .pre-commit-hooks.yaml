@@ -1,0 +1,34 @@
+- id: rosetta-glossary-check
+  name: Rosetta glossary check
+  description: Check the glossary source and generated files.
+  entry: rosetta glossary check
+  language: unsupported
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit]
+
+- id: rosetta-glossary-lint
+  name: Rosetta glossary lint
+  description: Warn about Avoid words in staged copy files.
+  entry: rosetta glossary lint --files
+  language: unsupported
+  files: '\.(tsx|jsx|md|rs|py)$'
+  exclude: '^(GLOSSARY|ATLAS)\.md$'
+  types: [file]
+  stages: [pre-commit]
+
+- id: rosetta-atlas-check
+  name: Rosetta atlas check
+  description: Check Atlas source, links and generated documents.
+  entry: rosetta atlas check
+  language: unsupported
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit]
+
+- id: rosetta-commit-msg
+  name: Rosetta commit message vocabulary
+  description: Warn about Avoid words in a commit message.
+  entry: rosetta glossary lint --message-file
+  language: unsupported
+  stages: [commit-msg]

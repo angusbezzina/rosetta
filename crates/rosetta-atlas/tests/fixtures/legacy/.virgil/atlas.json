@@ -1,0 +1,10 @@
+{
+  "schema": "virgil.atlas/v1",
+  "project": {
+    "name": "Legacy",
+    "repo": "legacy"
+  },
+  "nodes": [],
+  "edges": [],
+  "views": []
+}

@@ -1,0 +1,6 @@
+[workspace]
+members = ["crates/api"]
+resolver = "2"
+
+[workspace.dependencies]
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio"] }

@@ -1,0 +1,33 @@
+flowchart LR
+  subgraph g1["Device"]
+    n1["Web app"]
+    click n1 "atlas:web"
+    n6["@fixture/ui"]
+    click n6 "atlas:packages-ui"
+  end
+  subgraph g2["Cloud"]
+    n2["Door"]
+    click n2 "atlas:door"
+    n3["Store"]
+    click n3 "atlas:store"
+    n4["Cells"]
+    click n4 "atlas:cells"
+  end
+  subgraph g3["Edge"]
+    n5["Edge"]
+    click n5 "atlas:edge"
+  end
+  n1 -->|"1. the person sends"| n2
+  n2 -->|"2. answers #quot;accepted#quot;"| n2
+  n2 -->|"3. checks the policy"| n3
+  n3 -->|"4. commits the row"| n4
+  n4 -->|"5. keeps it"| n5
+  n5 -->|"6. carries it live"| n6
+  n6 -->|"7. draws it"| n1
+  class n2,n5,n6 fam-service
+  class n3,n4 fam-store
+  class n1 fam-surface
+  class n6 kind-package
+  class n2,n5 kind-service
+  class n3,n4 kind-store
+  class n1 kind-surface

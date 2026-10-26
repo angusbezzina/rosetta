@@ -1,0 +1,11 @@
+flowchart LR
+  n1["@fixture/ui"]
+  click n1 "atlas:packages-ui"
+  n2["@fixture/web"]
+  click n2 "atlas:apps-web"
+  n2 -->|"depends on"| n1
+  class n1 fam-service
+  class n2 fam-surface
+  class n1 is-focus
+  class n2 kind-app
+  class n1 kind-package
